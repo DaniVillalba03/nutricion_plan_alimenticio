@@ -49,3 +49,23 @@ test.describe('flujo principal (modo demostración)', () => {
     await expect(page.getByRole('heading', { name: /ya no está disponible/ })).toBeVisible();
   });
 });
+
+test.describe('constructor de planes', () => {
+  test('guarda solo tras editar y muestra el estado del guardado', async ({ page }) => {
+    await page.goto('/login');
+    await page.getByLabel('Correo electrónico').fill('lic@example.com');
+    await page.getByLabel('Contraseña').fill('cualquier-clave');
+    await page.getByRole('button', { name: /Ingresar/ }).click();
+    await expect(page).toHaveURL(/\/dashboard/);
+
+    const estado = page.getByRole('status').filter({ hasText: /Guardado|Guardando|Cambios sin guardar/ });
+    await expect(estado).toHaveText('Guardado');
+
+    // Editar: sube un cuarto de intercambio del primer alimento
+    await page.getByRole('button', { name: 'Añadir un cuarto de intercambio' }).first().click();
+    await expect(estado).toHaveText('Cambios sin guardar');
+
+    // Sin pulsar nada, tras la pausa se guarda sola
+    await expect(estado).toHaveText('Guardado', { timeout: 10_000 });
+  });
+});

@@ -16,6 +16,7 @@ import { getPlanAdherenceAction, savePlanAction, updateShareSettingsAction } fro
 import { usePatients } from '@/components/patients/PatientsProvider';
 import { useCatalog } from '@/components/catalog/CatalogProvider';
 import { redirectIfSessionExpired } from '@/lib/session';
+import { usePlanAutosave, type SaveStatus } from '@/components/planner/usePlanAutosave';
 import { PatientSwitcher } from '@/components/patients/PatientSwitcher';
 import { NewPatientModal } from '@/components/patients/NewPatientModal';
 import { MacroSummaryBar, MacroMiniBar } from '@/components/planner/MacroSummaryBar';
@@ -96,6 +97,27 @@ function initialPlanFor(client: Client): MealPlan {
   return emptyPlanFor(client.id, client.fullName, newId('plan-draft'));
 }
 
+/** Estado del guardado del plan, siempre visible junto a la versión. */
+function SaveIndicator({ status, onRetry }: { status: SaveStatus; onRetry: () => void }) {
+  if (status === 'error') {
+    return (
+      <button
+        type="button"
+        onClick={onRetry}
+        className="text-danger underline decoration-danger/40 underline-offset-4 hover:decoration-danger"
+      >
+        No se pudo guardar · Reintentar
+      </button>
+    );
+  }
+  const label = { saved: 'Guardado', saving: 'Guardando…', dirty: 'Cambios sin guardar' }[status];
+  return (
+    <span role="status" className={status === 'dirty' ? 'text-warning' : undefined}>
+      {label}
+    </span>
+  );
+}
+
 /** Se monta con `key={paciente.id}`: al cambiar de paciente el constructor arranca de cero. */
 function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
   const { clients, selectClient, updateClient, createClient, getCachedPlan, fetchPlan, cachePlan } = usePatients();
@@ -116,6 +138,42 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
   useEffect(() => {
     planRef.current = plan;
   });
+
+  // Guardado: el plan se guarda solo tras una pausa sin cambios, al salir de la pantalla y a mano.
+  // Mientras llega el plan guardado del paciente no se guarda nada (pisaría el real).
+  const lastSaveError = useRef<string | null>(null);
+  const persistPlan = async (toSave: MealPlan): Promise<boolean> => {
+    try {
+      const res = await savePlanAction({
+        // Solo se actualiza el plan si pertenece a este paciente; si no, se crea uno nuevo
+        id: toSave.clientId === activeClient.id ? toSave.id : undefined,
+        clientId: activeClient.id,
+        title: toSave.title,
+        notes: toSave.notes,
+        versionNumber: toSave.versionNumber || 1,
+        meals: toSave.meals,
+        shareExpiresAt: toSave.shareExpiresAt ?? null,
+        isShareRevoked: toSave.isShareRevoked,
+      });
+      if (!res.success) {
+        lastSaveError.current = res.error ?? null;
+        redirectIfSessionExpired(res.error);
+        return false;
+      }
+      if ('planId' in res && res.planId && res.shareToken) {
+        // Supabase asignó el id real y el token seguro del enlace del paciente
+        editor.setPersisted(res.planId, res.shareToken, activeClient.id);
+        cachePlan(activeClient.id, { ...toSave, id: res.planId, shareToken: res.shareToken, clientId: activeClient.id });
+      }
+      lastSaveError.current = null;
+      return true;
+    } catch {
+      lastSaveError.current = 'revisa tu conexión';
+      return false;
+    }
+  };
+  const autosave = usePlanAutosave({ plan, save: persistPlan, enabled: !planLoading });
+  const { markSaved } = autosave;
 
   // Lo que el paciente completó hoy desde su portal (lo lee la base de datos, no el dispositivo)
   const [adherence, setAdherence] = useState<{ completed: number; total: number } | null>(null);
@@ -141,6 +199,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
         if (planRef.current === baselineRef.current) {
           baselineRef.current = fetched;
           loadPlan(fetched);
+          markSaved(fetched);
         }
       })
       .catch((err: unknown) => {
@@ -152,7 +211,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
     return () => {
       cancelled = true;
     };
-  }, [activeClient.id, fetchPlan, loadPlan, toast]);
+  }, [activeClient.id, fetchPlan, loadPlan, toast, markSaved]);
 
   const [templates, setTemplates] = useState<PlanTemplate[]>(MOCK_PLAN_TEMPLATES);
   const [toolModal, setToolModal] = useState<ToolModal>(null);
@@ -255,28 +314,14 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
   };
 
   const handleSavePlan = async () => {
-    try {
-      const res = await savePlanAction({
-        // Solo se actualiza el plan si pertenece a este paciente; si no, se crea uno nuevo
-        id: plan.clientId === activeClient.id ? plan.id : undefined,
-        clientId: activeClient.id,
-        title: plan.title,
-        notes: plan.notes,
-        versionNumber: currentVersion,
-        meals: plan.meals,
-        shareExpiresAt: plan.shareExpiresAt ?? null,
-        isShareRevoked: plan.isShareRevoked,
-      });
-      if (res.success && 'planId' in res && res.planId && res.shareToken) {
-        // Supabase asignó el id real y el token seguro del enlace del paciente
-        editor.setPersisted(res.planId, res.shareToken, activeClient.id);
-        cachePlan(activeClient.id, { ...plan, id: res.planId, shareToken: res.shareToken, clientId: activeClient.id });
-      }
-      if (!res.success) redirectIfSessionExpired(res.error);
-      toast(res.success ? ('message' in res && res.message ? res.message : 'Plan guardado correctamente') : `No se pudo guardar: ${res.error}`);
-    } catch {
-      toast('No se pudo guardar el plan. Revisa tu conexión.');
-    }
+    const ok = await autosave.flush();
+    toast(
+      ok
+        ? isDemoAccessEnabled()
+          ? 'Plan guardado en modo local/demostración'
+          : 'Plan guardado correctamente'
+        : `No se pudo guardar: ${lastSaveError.current ?? 'revisa tu conexión'}`
+    );
   };
 
   const handleUpdateShareSettings = async (isRevoked: boolean, expiresAt: string | null) => {
@@ -478,6 +523,8 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
           >
             Ver historial
           </button>
+          <span aria-hidden="true">·</span>
+          <SaveIndicator status={autosave.status} onRetry={() => void handleSavePlan()} />
           {adherence && adherence.total > 0 && (
             <>
               <span aria-hidden="true">·</span>

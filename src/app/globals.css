@@ -3,11 +3,12 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Sistema de diseño "cuaderno clínico"
- * ------------------------------------
- * Papel cálido, tinta oscura y un único verde salvia. La jerarquía la dan el tamaño,
- * el peso y el espacio (no las cajas ni los colores). Los colores de los macronutrientes
- * son apagados y solo se usan para datos, nunca como decoración.
+ * Sistema de diseño
+ * -----------------
+ * Base neutra y limpia (blanco y tinta casi negra, con un apenas verdoso), un único verde
+ * esmeralda para la acción y titulares serif para la elegancia. La jerarquía la dan el
+ * tamaño, el peso y el espacio (no las cajas ni los colores). Los colores de los
+ * macronutrientes son nítidos y solo se usan para datos, nunca como decoración.
  *
  * Los componentes usan estas utilidades (bg-surface, text-muted, border-border...) y no
  * necesitan variantes `dark:`: el valor cambia con la clase `.dark`.
@@ -15,94 +16,94 @@
 :root {
   color-scheme: light;
 
-  --background: #f6f3ed;
-  --foreground: #26231e;
+  --background: #f6f8f7;
+  --foreground: #0f1714;
 
-  --surface: #fcfbf8;
-  --surface-muted: #efebe3;
+  --surface: #ffffff;
+  --surface-muted: #eef2f0;
   --surface-elevated: #ffffff;
 
-  --border: #e5e0d5;
-  --border-strong: #d2cbbb;
+  --border: #e1e6e3;
+  --border-strong: #cdd5d1;
 
-  --muted: #6a655a;
-  --subtle: #8d8778;
+  --muted: #56635d;
+  --subtle: #85918b;
 
-  --primary: #2d6a4f;
-  --primary-hover: #245640;
-  --primary-soft: #e3ece4;
-  --primary-soft-foreground: #24543e;
+  --primary: #0b7d58;
+  --primary-hover: #086446;
+  --primary-soft: #e0f3ea;
+  --primary-soft-foreground: #08603f;
   --primary-foreground: #ffffff;
 
-  --accent: #26231e;
-  --accent-hover: #3a362f;
-  --accent-foreground: #fcfbf8;
+  --accent: #0f1714;
+  --accent-hover: #26302b;
+  --accent-foreground: #ffffff;
 
-  --danger: #b4432d;
-  --danger-soft: #f6e6e0;
-  --danger-soft-foreground: #8d3422;
+  --danger: #c93a32;
+  --danger-soft: #fbe9e7;
+  --danger-soft-foreground: #a02a23;
 
-  --warning: #a2701a;
-  --warning-soft: #f5ecd6;
-  --warning-soft-foreground: #765211;
+  --warning: #b87a0a;
+  --warning-soft: #fdf2d8;
+  --warning-soft-foreground: #81550a;
 
-  --info: #3d6684;
-  --info-soft: #e4ecf2;
-  --info-soft-foreground: #2c4d66;
+  --info: #2a6fb5;
+  --info-soft: #e5f0fa;
+  --info-soft-foreground: #1f568f;
 
-  /* Macronutrientes: apagados, solo para datos */
-  --macro-cho: #b0873a;
-  --macro-pro: #b0553b;
-  --macro-lip: #4d7190;
+  /* Macronutrientes: colores nítidos, solo para datos */
+  --macro-cho: #e0a020;
+  --macro-pro: #e0553b;
+  --macro-lip: #3a7fc8;
 
-  --ring: #2d6a4f;
-  --overlay: rgb(38 35 30 / 0.45);
+  --ring: #0b7d58;
+  --overlay: rgb(9 16 13 / 0.5);
 }
 
 .dark {
   color-scheme: dark;
 
-  --background: #151412;
-  --foreground: #ebe7de;
+  --background: #0b0f0d;
+  --foreground: #eef3f0;
 
-  --surface: #1c1b18;
-  --surface-muted: #252320;
-  --surface-elevated: #22211d;
+  --surface: #121715;
+  --surface-muted: #1a201d;
+  --surface-elevated: #171d1a;
 
-  --border: #2e2c27;
-  --border-strong: #413e36;
+  --border: #232a26;
+  --border-strong: #35403a;
 
-  --muted: #a39d8f;
-  --subtle: #746f62;
+  --muted: #9ba8a1;
+  --subtle: #67736d;
 
-  --primary: #7fb897;
-  --primary-hover: #9ccdb1;
-  --primary-soft: rgb(127 184 151 / 0.12);
-  --primary-soft-foreground: #a9d6bd;
-  --primary-foreground: #0f2219;
+  --primary: #2fbf8a;
+  --primary-hover: #4bd6a3;
+  --primary-soft: rgb(47 191 138 / 0.14);
+  --primary-soft-foreground: #7fe0b9;
+  --primary-foreground: #03150d;
 
-  --accent: #ebe7de;
+  --accent: #eef3f0;
   --accent-hover: #ffffff;
-  --accent-foreground: #151412;
+  --accent-foreground: #0b0f0d;
 
-  --danger: #e38b75;
-  --danger-soft: rgb(227 139 117 / 0.12);
-  --danger-soft-foreground: #f0aa98;
+  --danger: #ef6a60;
+  --danger-soft: rgb(239 106 96 / 0.14);
+  --danger-soft-foreground: #f59a92;
 
-  --warning: #e0b55a;
-  --warning-soft: rgb(224 181 90 / 0.12);
-  --warning-soft-foreground: #ebca83;
+  --warning: #f0b43c;
+  --warning-soft: rgb(240 180 60 / 0.14);
+  --warning-soft-foreground: #f5cb78;
 
-  --info: #86b1d1;
-  --info-soft: rgb(134 177 209 / 0.12);
-  --info-soft-foreground: #a9c9e0;
+  --info: #5aa0e6;
+  --info-soft: rgb(90 160 230 / 0.14);
+  --info-soft-foreground: #8fbff0;
 
-  --macro-cho: #d1a85a;
-  --macro-pro: #d98068;
-  --macro-lip: #7fa6c6;
+  --macro-cho: #f0b43c;
+  --macro-pro: #f2735a;
+  --macro-lip: #5aa0e6;
 
-  --ring: #7fb897;
-  --overlay: rgb(10 9 8 / 0.65);
+  --ring: #2fbf8a;
+  --overlay: rgb(2 6 4 / 0.7);
 }
 
 @theme inline {
@@ -201,9 +202,9 @@
   }
 }
 
-/* Los colores de grupo vienen de los datos (muy saturados): se apagan para que convivan con la paleta */
+/* Los colores de grupo vienen de los datos: se baja un poco la saturación para que convivan con la paleta */
 span[aria-hidden='true'][style*='background-color'] {
-  filter: saturate(0.65) brightness(0.97);
+  filter: saturate(0.9);
 }
 
 /* Barras de desplazamiento discretas */

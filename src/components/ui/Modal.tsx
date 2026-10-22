@@ -58,7 +58,7 @@ export function Modal({ open, onClose, title, description, size = 'md', children
         if (e.target === ref.current) onClose();
       }}
       className={cn(
-        'p-0 m-auto w-full max-h-[90dvh] rounded-2xl border border-border bg-surface-elevated text-foreground shadow-2xl',
+        'p-0 m-auto w-full max-h-[90dvh] rounded-xl border border-border bg-surface-elevated text-foreground shadow-[0_24px_60px_-20px_rgb(0_0_0/0.35)]',
         'backdrop:bg-overlay backdrop:backdrop-blur-sm',
         'max-sm:mb-0 max-sm:max-w-full max-sm:rounded-b-none',
         SIZES[size],
@@ -68,10 +68,10 @@ export function Modal({ open, onClose, title, description, size = 'md', children
     >
       {open && (
         <div className="flex max-h-[90dvh] flex-col">
-          <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+          <div className="flex items-start justify-between gap-4 px-6 pb-3 pt-5">
             <div>
-              <h2 className="text-base font-bold">{title}</h2>
-              {description && <p className="mt-0.5 text-xs text-muted">{description}</p>}
+              <h2 className="text-xl font-medium">{title}</h2>
+              {description && <p className="mt-1 text-sm text-muted">{description}</p>}
             </div>
             <button
               type="button"
@@ -82,9 +82,9 @@ export function Modal({ open, onClose, title, description, size = 'md', children
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+          <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
           {footer && (
-            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border px-5 py-3">
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border px-6 py-4">
               {footer}
             </div>
           )}

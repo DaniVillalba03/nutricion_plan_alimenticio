@@ -2,8 +2,8 @@ import React, { useId } from 'react';
 import { cn } from '@/lib/utils';
 
 const CONTROL =
-  'w-full rounded-xl border border-border bg-surface px-3 text-sm text-foreground placeholder:text-subtle ' +
-  'transition-colors focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring/30 ' +
+  'w-full rounded-lg border border-border-strong bg-surface px-3 text-[15px] text-foreground placeholder:text-subtle ' +
+  'transition-colors focus:outline-none focus:border-ring focus:ring-[3px] focus:ring-ring/20 ' +
   'disabled:opacity-60 aria-[invalid=true]:border-danger';
 
 export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
@@ -40,7 +40,7 @@ export function Field({ label, hint, error, className, children }: FieldProps) {
   const note = error || hint;
   return (
     <div className={cn('space-y-1.5', className)}>
-      <label htmlFor={id} className="block text-xs font-semibold text-foreground">
+      <label htmlFor={id} className="block text-[13px] font-medium text-foreground">
         {label}
       </label>
       {children({
@@ -49,7 +49,7 @@ export function Field({ label, hint, error, className, children }: FieldProps) {
         'aria-describedby': note ? noteId : undefined,
       })}
       {note && (
-        <p id={noteId} className={cn('text-xs', error ? 'text-danger' : 'text-muted')}>
+        <p id={noteId} className={cn('text-[13px]', error ? 'text-danger' : 'text-muted')}>
           {note}
         </p>
       )}

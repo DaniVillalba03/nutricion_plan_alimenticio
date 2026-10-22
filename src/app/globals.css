@@ -3,92 +3,106 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Tokens semánticos de diseño.
- * Los componentes nuevos usan estas utilidades (bg-surface, text-muted, border-border...)
- * y no necesitan variantes `dark:` porque el valor cambia con la clase `.dark`.
+ * Sistema de diseño "cuaderno clínico"
+ * ------------------------------------
+ * Papel cálido, tinta oscura y un único verde salvia. La jerarquía la dan el tamaño,
+ * el peso y el espacio (no las cajas ni los colores). Los colores de los macronutrientes
+ * son apagados y solo se usan para datos, nunca como decoración.
+ *
+ * Los componentes usan estas utilidades (bg-surface, text-muted, border-border...) y no
+ * necesitan variantes `dark:`: el valor cambia con la clase `.dark`.
  */
 :root {
   color-scheme: light;
 
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f6f3ed;
+  --foreground: #26231e;
 
-  --surface: #ffffff;
-  --surface-muted: #f1f5f9;
+  --surface: #fcfbf8;
+  --surface-muted: #efebe3;
   --surface-elevated: #ffffff;
 
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
+  --border: #e5e0d5;
+  --border-strong: #d2cbbb;
 
-  --muted: #64748b;
-  --subtle: #94a3b8;
+  --muted: #6a655a;
+  --subtle: #8d8778;
 
-  --primary: #059669;
-  --primary-hover: #047857;
-  --primary-soft: #ecfdf5;
-  --primary-soft-foreground: #047857;
+  --primary: #2d6a4f;
+  --primary-hover: #245640;
+  --primary-soft: #e3ece4;
+  --primary-soft-foreground: #24543e;
   --primary-foreground: #ffffff;
 
-  --accent: #0f172a;
-  --accent-hover: #1e293b;
-  --accent-foreground: #ffffff;
+  --accent: #26231e;
+  --accent-hover: #3a362f;
+  --accent-foreground: #fcfbf8;
 
-  --danger: #e11d48;
-  --danger-soft: #fff1f2;
-  --danger-soft-foreground: #be123c;
+  --danger: #b4432d;
+  --danger-soft: #f6e6e0;
+  --danger-soft-foreground: #8d3422;
 
-  --warning: #d97706;
-  --warning-soft: #fffbeb;
-  --warning-soft-foreground: #b45309;
+  --warning: #a2701a;
+  --warning-soft: #f5ecd6;
+  --warning-soft-foreground: #765211;
 
-  --info: #2563eb;
-  --info-soft: #eff6ff;
-  --info-soft-foreground: #1d4ed8;
+  --info: #3d6684;
+  --info-soft: #e4ecf2;
+  --info-soft-foreground: #2c4d66;
 
-  --ring: #10b981;
-  --overlay: rgb(2 6 23 / 0.6);
+  /* Macronutrientes: apagados, solo para datos */
+  --macro-cho: #b0873a;
+  --macro-pro: #b0553b;
+  --macro-lip: #4d7190;
+
+  --ring: #2d6a4f;
+  --overlay: rgb(38 35 30 / 0.45);
 }
 
 .dark {
   color-scheme: dark;
 
-  --background: #020617;
-  --foreground: #f1f5f9;
+  --background: #151412;
+  --foreground: #ebe7de;
 
-  --surface: #0f172a;
-  --surface-muted: #1e293b;
-  --surface-elevated: #162033;
+  --surface: #1c1b18;
+  --surface-muted: #252320;
+  --surface-elevated: #22211d;
 
-  --border: #1e293b;
-  --border-strong: #334155;
+  --border: #2e2c27;
+  --border-strong: #413e36;
 
-  --muted: #94a3b8;
-  --subtle: #64748b;
+  --muted: #a39d8f;
+  --subtle: #746f62;
 
-  --primary: #10b981;
-  --primary-hover: #34d399;
-  --primary-soft: rgb(16 185 129 / 0.12);
-  --primary-soft-foreground: #6ee7b7;
-  --primary-foreground: #022c22;
+  --primary: #7fb897;
+  --primary-hover: #9ccdb1;
+  --primary-soft: rgb(127 184 151 / 0.12);
+  --primary-soft-foreground: #a9d6bd;
+  --primary-foreground: #0f2219;
 
-  --accent: #f1f5f9;
+  --accent: #ebe7de;
   --accent-hover: #ffffff;
-  --accent-foreground: #0f172a;
+  --accent-foreground: #151412;
 
-  --danger: #fb7185;
-  --danger-soft: rgb(244 63 94 / 0.12);
-  --danger-soft-foreground: #fda4af;
+  --danger: #e38b75;
+  --danger-soft: rgb(227 139 117 / 0.12);
+  --danger-soft-foreground: #f0aa98;
 
-  --warning: #fbbf24;
-  --warning-soft: rgb(245 158 11 / 0.12);
-  --warning-soft-foreground: #fcd34d;
+  --warning: #e0b55a;
+  --warning-soft: rgb(224 181 90 / 0.12);
+  --warning-soft-foreground: #ebca83;
 
-  --info: #60a5fa;
-  --info-soft: rgb(59 130 246 / 0.12);
-  --info-soft-foreground: #93c5fd;
+  --info: #86b1d1;
+  --info-soft: rgb(134 177 209 / 0.12);
+  --info-soft-foreground: #a9c9e0;
 
-  --ring: #34d399;
-  --overlay: rgb(2 6 23 / 0.75);
+  --macro-cho: #d1a85a;
+  --macro-pro: #d98068;
+  --macro-lip: #7fa6c6;
+
+  --ring: #7fb897;
+  --overlay: rgb(10 9 8 / 0.65);
 }
 
 @theme inline {
@@ -118,17 +132,20 @@
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
   --color-info-soft-foreground: var(--info-soft-foreground);
+  --color-macro-cho: var(--macro-cho);
+  --color-macro-pro: var(--macro-pro);
+  --color-macro-lip: var(--macro-lip);
   --color-ring: var(--ring);
   --color-overlay: var(--overlay);
 
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-ui);
+  --font-serif: var(--font-display);
   --font-mono: var(--font-geist-mono);
 }
 
 /*
- * Paleta única para el código existente: `zinc` y `slate` compartían uso y mezclaban
- * grises neutros con grises azulados. Se igualan los dos al tono slate y se definen
- * 750 y 850, que Tailwind no trae y que el código ya referenciaba.
+ * Paleta heredada: el documento PDF y los colores de grupo de `mock-data` usan clases
+ * `slate`/`zinc` explícitas. Se igualan al mismo tono y se definen 750 y 850.
  */
 @theme {
   --color-slate-750: oklch(32.5% 0.0425 258.7);
@@ -150,26 +167,54 @@
 }
 
 @layer base {
+  html {
+    font-size: 16px;
+  }
+
   body {
     background-color: var(--background);
     color: var(--foreground);
+    font-size: 0.9375rem; /* 15 px: el cuerpo de la app ya no es "text-xs" */
+    line-height: 1.55;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Títulos con carácter: serif humanista para titulares, sans para todo lo demás */
+  h1,
+  h2,
+  .font-display {
+    font-family: var(--font-display), ui-serif, Georgia, serif;
+    font-optical-sizing: auto;
+    letter-spacing: -0.01em;
   }
 
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
   }
 }
 
-/* Custom smooth transitions and scrollbar */
+/* Los colores de grupo vienen de los datos (muy saturados): se apagan para que convivan con la paleta */
+span[aria-hidden='true'][style*='background-color'] {
+  filter: saturate(0.65) brightness(0.97);
+}
+
+/* Barras de desplazamiento discretas */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+  scrollbar-color: var(--border-strong) transparent;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -177,12 +222,8 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.4);
+  background: var(--border-strong);
   border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.7);
 }
 
 @media (prefers-reduced-motion: reduce) {

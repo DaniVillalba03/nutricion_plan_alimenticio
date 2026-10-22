@@ -2,19 +2,8 @@
 
 import React, { useState, useTransition } from 'react';
 import { validateAndImportFoodsAction, ProcessedImportRow } from '@/actions/nutrition-actions';
-import { Badge, Button, Card, Field, Input, Textarea } from '@/components/ui';
-import {
-  UploadCloud,
-  FileSpreadsheet,
-  CheckCircle2,
-  AlertTriangle,
-  Sparkles,
-  Scale,
-  RefreshCw,
-  PlusCircle,
-  Database,
-  Layers,
-} from 'lucide-react';
+import { Badge, Button, Card, Field, Input, PageHeader, Textarea } from '@/components/ui';
+import { RefreshCw } from 'lucide-react';
 
 const SAMPLE_PARAGUAYAN_DATA = `Sopa Paraguaya tradicional, 210, 24, 7, 10
 Chipa Guasú casero, 185, 22, 6, 8
@@ -62,30 +51,18 @@ export default function FoodImportPage() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-          Base extendida · Validador Atwater 4/4/9
-        </p>
-        <h1 className="mt-1 flex items-center gap-2.5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          <UploadCloud className="h-7 w-7 text-primary" />
-          Importador masivo de alimentos
-        </h1>
-        <p className="mt-1 max-w-3xl text-sm text-muted">
-          Pega o ingresa alimentos con su aporte nutricional por 100 g. El motor evalúa la consistencia energética con la
-          regla Atwater (CHO×4 + PRO×4 + LIP×9) y sugiere el grupo de intercambio con su porción en gramos.
-        </p>
-      </div>
+    <div className="space-y-10">
+      <PageHeader
+        eyebrow="Base extendida"
+        title="Importar alimentos"
+        description="Pega alimentos con su aporte por 100 g. El motor revisa la consistencia energética con la regla Atwater (CHO×4 + PRO×4 + LIP×9) y sugiere el grupo de intercambio y la porción en gramos."
+      />
 
-      <Card className="space-y-4 p-5 sm:p-6">
+      <Card className="space-y-5 p-6">
         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-subtle">
-            <FileSpreadsheet className="h-4 w-4 text-primary" />
-            Entrada de datos (separados por coma o tabulación)
-          </h2>
+          <h2 className="text-xl font-medium text-foreground">Datos a validar</h2>
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={() => setInputText(SAMPLE_PARAGUAYAN_DATA)}>
-              <Sparkles className="h-3.5 w-3.5 text-warning" />
               Cargar muestra paraguaya
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setInputText('')}>
@@ -99,148 +76,122 @@ export default function FoodImportPage() {
         </Field>
 
         <Field
-          label="Filas (formato: Nombre, Kcal/100g, CHO, PRO, LIP)"
-          hint="Una línea por alimento: nombre, calorías, carbohidratos, proteínas y lípidos."
+          label="Filas"
+          hint="Una línea por alimento, separada por comas: nombre, kcal/100 g, CHO, PRO, LIP."
         >
           {(p) => (
             <Textarea
               {...p}
-              rows={7}
+              rows={8}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={'Mandioca cocida, 160, 38, 1.4, 0.3\nPechuga hervida, 120, 0, 26, 1.5'}
-              className="font-mono text-xs leading-relaxed"
+              className="font-mono text-[13px] leading-relaxed"
             />
           )}
         </Field>
 
         <div className="flex justify-end">
           <Button variant="primary" onClick={handleValidate} disabled={isPending || !inputText.trim()}>
-            {isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Scale className="h-4 w-4" />}
-            Ejecutar validación Atwater
+            {isPending && <RefreshCw className="h-4 w-4 animate-spin" />}
+            Validar con Atwater 4/4/9
           </Button>
         </div>
       </Card>
 
       {statusMessage && (
-        <div
-          role="status"
-          className="flex items-center justify-between gap-2 rounded-2xl bg-primary-soft p-4 text-xs font-medium text-primary-soft-foreground"
-        >
-          <span className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
-            {statusMessage}
-          </span>
-          {batchId && (
-            <Badge tone="primary" className="font-mono">
-              Lote {batchId.substring(0, 8)}…
-            </Badge>
-          )}
-        </div>
+        <p role="status" className="rounded-lg bg-primary-soft px-4 py-3 text-sm text-primary-soft-foreground">
+          {statusMessage}
+          {batchId && <span className="ml-2 font-mono text-[13px] opacity-80">Lote {batchId.substring(0, 8)}…</span>}
+        </p>
       )}
 
       {summary && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Card className="p-4">
-            <span className="block text-xs text-muted">Filas procesadas</span>
-            <strong className="text-2xl font-bold text-foreground">{summary.total}</strong>
-          </Card>
-          <div className="rounded-2xl bg-primary-soft p-4">
-            <span className="flex items-center gap-1 text-xs font-semibold text-primary-soft-foreground">
-              <CheckCircle2 className="h-3.5 w-3.5" /> Aprobados automáticamente
-            </span>
-            <strong className="text-2xl font-bold text-primary-soft-foreground">{summary.approved}</strong>
+        <dl className="grid grid-cols-3 gap-6 border-y border-border py-6">
+          <div>
+            <dd className="font-display text-4xl font-medium tabular-nums text-foreground">{summary.total}</dd>
+            <dt className="mt-1 text-sm text-muted">Filas procesadas</dt>
           </div>
-          <div className="rounded-2xl bg-warning-soft p-4">
-            <span className="flex items-center gap-1 text-xs font-semibold text-warning-soft-foreground">
-              <AlertTriangle className="h-3.5 w-3.5" /> Requieren revisión
-            </span>
-            <strong className="text-2xl font-bold text-warning-soft-foreground">{summary.review}</strong>
+          <div>
+            <dd className="font-display text-4xl font-medium tabular-nums text-primary">{summary.approved}</dd>
+            <dt className="mt-1 text-sm text-muted">Aprobadas automáticamente</dt>
           </div>
-        </div>
+          <div>
+            <dd className="font-display text-4xl font-medium tabular-nums text-warning">{summary.review}</dd>
+            <dt className="mt-1 text-sm text-muted">Requieren revisión</dt>
+          </div>
+        </dl>
       )}
 
       {results && results.length > 0 && (
-        <Card className="space-y-4 p-5">
-          <div className="flex flex-col justify-between gap-3 border-b border-border pb-4 sm:flex-row sm:items-center">
+        <section className="space-y-4">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
             <div>
-              <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
-                <Database className="h-4 w-4 text-primary" />
-                Clasificación y consistencia calórica
-              </h2>
-              <p className="mt-0.5 text-xs text-muted">
-                Verifica las sugerencias del motor antes de incluirlas al catálogo oficial.
-              </p>
+              <h2 className="text-2xl font-medium text-foreground">Resultado de la clasificación</h2>
+              <p className="mt-1 text-[15px] text-muted">Revisa las sugerencias antes de incluirlas en el catálogo.</p>
             </div>
             <Button variant="accent" onClick={handleCommit}>
-              <PlusCircle className="h-4 w-4" />
               Aprobar lote en Supabase
             </Button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-border text-xs font-semibold uppercase tracking-wider text-subtle">
-                  <th className="px-3 py-2.5">Alimento</th>
-                  <th className="px-3 py-2.5">Nutrientes / 100g</th>
-                  <th className="px-3 py-2.5">Atwater 4/4/9</th>
-                  <th className="px-3 py-2.5">Grupo sugerido</th>
-                  <th className="px-3 py-2.5">Porción 1 intercambio</th>
-                  <th className="px-3 py-2.5">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {results.map((row) => (
-                  <tr key={row.id} className="transition-colors hover:bg-surface-muted/50">
-                    <td className="px-3 py-3">
-                      <span className="block font-semibold text-foreground">{row.name}</span>
-                      <span className="text-xs text-muted">{row.validationMessage}</span>
-                    </td>
-                    <td className="px-3 py-3">
-                      <span className="block font-semibold text-foreground">{row.kcal100g} kcal</span>
-                      <span className="text-xs text-muted">
-                        {row.cho100g}g CHO · {row.pro100g}g PRO · {row.lip100g}g LIP
-                      </span>
-                    </td>
-                    <td className="px-3 py-3">
-                      <span className="block font-mono font-semibold text-foreground">
-                        {row.atwater.calculatedCalories} kcal
-                      </span>
-                      <span className={`text-xs font-semibold ${row.atwater.isValid ? 'text-primary' : 'text-warning'}`}>
-                        Δ {row.atwater.diffPercent}%
-                      </span>
-                    </td>
-                    <td className="px-3 py-3">
-                      <span
-                        className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-white"
-                        style={{ backgroundColor: row.suggestedGroup.accent }}
-                      >
-                        <Layers className="h-3 w-3" />
-                        {row.suggestedGroup.shortName}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3">
-                      <span className="text-xs font-semibold text-primary">{row.baseGrams} g</span>
-                      <span className="block text-xs text-muted">por 1 intercambio</span>
-                    </td>
-                    <td className="px-3 py-3">
-                      {row.status === 'approved' ? (
-                        <Badge tone="primary">
-                          <CheckCircle2 className="h-3 w-3" /> Aprobado
-                        </Badge>
-                      ) : (
-                        <Badge tone="warning">
-                          <AlertTriangle className="h-3 w-3" /> En revisión
-                        </Badge>
-                      )}
-                    </td>
+          <Card className="overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px] text-left">
+                <thead>
+                  <tr className="border-b border-border text-[13px] text-muted">
+                    <th scope="col" className="px-5 py-3 font-medium">Alimento</th>
+                    <th scope="col" className="px-3 py-3 font-medium">Por 100 g</th>
+                    <th scope="col" className="px-3 py-3 font-medium">Atwater</th>
+                    <th scope="col" className="px-3 py-3 font-medium">Grupo sugerido</th>
+                    <th scope="col" className="px-3 py-3 font-medium">1 intercambio</th>
+                    <th scope="col" className="px-5 py-3 font-medium">Estado</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {results.map((row) => (
+                    <tr key={row.id} className="align-top transition-colors hover:bg-surface-muted/50">
+                      <td className="px-5 py-3.5">
+                        <p className="text-[15px] font-medium text-foreground">{row.name}</p>
+                        <p className="mt-0.5 max-w-xs text-[13px] text-muted">{row.validationMessage}</p>
+                      </td>
+                      <td className="px-3 py-3.5 text-[15px] tabular-nums">
+                        <p className="text-foreground">{row.kcal100g} kcal</p>
+                        <p className="text-[13px] text-muted">
+                          {row.cho100g} / {row.pro100g} / {row.lip100g} g
+                        </p>
+                      </td>
+                      <td className="px-3 py-3.5 text-[15px] tabular-nums">
+                        <p className="text-foreground">{row.atwater.calculatedCalories} kcal</p>
+                        <p className={row.atwater.isValid ? 'text-[13px] text-primary' : 'text-[13px] text-warning'}>
+                          Δ {row.atwater.diffPercent}%
+                        </p>
+                      </td>
+                      <td className="px-3 py-3.5 text-sm text-foreground">
+                        <span className="inline-flex items-center gap-2">
+                          <span
+                            className="h-2 w-2 shrink-0 rounded-full"
+                            style={{ backgroundColor: row.suggestedGroup.accent }}
+                            aria-hidden="true"
+                          />
+                          {row.suggestedGroup.shortName}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3.5 text-[15px] tabular-nums text-foreground">{row.baseGrams} g</td>
+                      <td className="px-5 py-3.5">
+                        {row.status === 'approved' ? (
+                          <Badge tone="primary">Aprobado</Badge>
+                        ) : (
+                          <Badge tone="warning">En revisión</Badge>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </section>
       )}
     </div>
   );

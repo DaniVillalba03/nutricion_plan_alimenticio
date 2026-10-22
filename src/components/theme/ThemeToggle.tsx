@@ -3,6 +3,7 @@
 import React from 'react';
 import { useTheme } from './ThemeProvider';
 import { Sun, Moon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ThemeToggleProps {
   className?: string;
@@ -20,17 +21,21 @@ export function ThemeToggle({ className = '', showLabel = false }: ThemeTogglePr
     <button
       onClick={toggleTheme}
       type="button"
-      className={`inline-flex items-center justify-center gap-2 p-2 rounded-xl border border-border bg-surface text-muted hover:bg-surface-muted hover:text-foreground transition-colors ${className}`}
+      className={cn(
+        'inline-flex h-9 items-center justify-center gap-2 rounded-lg text-muted transition-colors hover:bg-surface-muted hover:text-foreground',
+        showLabel ? 'px-2.5 text-[13px]' : 'w-9',
+        className
+      )}
       title="Alternar modo claro / oscuro"
       aria-label="Alternar tema claro/oscuro"
       suppressHydrationWarning
     >
-      <Moon className="w-4 h-4 dark:hidden" aria-hidden="true" />
-      <Sun className="w-4 h-4 hidden dark:block text-warning" aria-hidden="true" />
+      <Moon className="h-[18px] w-[18px] dark:hidden" strokeWidth={1.75} aria-hidden="true" />
+      <Sun className="hidden h-[18px] w-[18px] dark:block" strokeWidth={1.75} aria-hidden="true" />
       {showLabel && (
-        <span className="text-xs font-semibold">
-          <span className="dark:hidden">Modo Oscuro</span>
-          <span className="hidden dark:inline">Modo Claro</span>
+        <span>
+          <span className="dark:hidden">Modo oscuro</span>
+          <span className="hidden dark:inline">Modo claro</span>
         </span>
       )}
     </button>

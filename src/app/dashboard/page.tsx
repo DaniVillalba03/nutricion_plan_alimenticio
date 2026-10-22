@@ -17,7 +17,7 @@ import { savePlanAction, updateShareSettingsAction } from '@/actions/nutrition-a
 import { usePatients } from '@/components/patients/PatientsProvider';
 import { PatientSwitcher } from '@/components/patients/PatientSwitcher';
 import { NewPatientModal } from '@/components/patients/NewPatientModal';
-import { MacroSummaryBar } from '@/components/planner/MacroSummaryBar';
+import { MacroSummaryBar, MacroMiniBar } from '@/components/planner/MacroSummaryBar';
 import { MealCard } from '@/components/planner/MealCard';
 import { EquivalentsModal } from '@/components/planner/EquivalentsModal';
 import { PlanPdfView } from '@/components/planner/PlanPdfView';
@@ -29,10 +29,9 @@ import {
   VersionHistoryModal,
 } from '@/components/planner/PlanModals';
 import { usePlanEditor } from '@/components/planner/usePlanEditor';
-import { Button, Badge, Card, useToast } from '@/components/ui';
+import { Button, Card, buttonClasses, useToast } from '@/components/ui';
 import { Popover, MenuItem } from '@/components/ui/Popover';
 import {
-  Utensils,
   Plus,
   RotateCcw,
   Printer,
@@ -40,7 +39,6 @@ import {
   Bookmark,
   Copy,
   History,
-  Layers,
   Save,
   ChevronDown,
   MoreHorizontal,
@@ -249,60 +247,48 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
     );
   };
 
+  const restrictions = activeClient.exclusions;
+
   return (
-    <div className="space-y-5 pb-12">
-      {/* Encabezado: paciente + acciones */}
-      <Card className="p-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-3">
+    <div>
+      <header>
+        <p className="mb-2 text-[13px] font-medium text-primary">Constructor de planes</p>
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 flex-1">
             <PatientSwitcher
               clients={clients}
               activeClient={activeClient}
               onSelect={selectClient}
               onCreate={() => setToolModal('newPatient')}
             />
-            <div className="flex flex-wrap items-center gap-1.5">
-              {activeClient.exclusions.length === 0 ? (
-                <span className="text-xs text-muted">Sin restricciones</span>
-              ) : (
-                activeClient.exclusions.map((exclusion) => (
-                  <Badge key={exclusion} tone="danger">
-                    Sin {exclusion}
-                  </Badge>
-                ))
+            <p className="mt-2 text-[15px] text-muted">
+              {activeClient.age} años · {activeClient.targetCalories.toLocaleString('es-PY')} kcal al día
+              {restrictions.length > 0 && (
+                <>
+                  {' · '}
+                  <span className="text-danger">Sin {restrictions.map((r) => r.toLowerCase()).join(', ')}</span>
+                </>
               )}
-              {activeClient.isShareRevoked && <Badge tone="danger">Enlace revocado</Badge>}
-            </div>
+              {activeClient.isShareRevoked && <span className="text-danger"> · enlace revocado</span>}
+            </p>
+            {activeClient.notes && <p className="mt-1.5 max-w-2xl text-sm text-muted">{activeClient.notes}</p>}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setToolModal('history')}
-              className="inline-flex h-8 items-center gap-1.5 rounded-xl bg-info-soft px-3 text-xs font-semibold text-info-soft-foreground transition-colors hover:opacity-80"
-              title="Ver historial de versiones"
-            >
-              <History className="h-3.5 w-3.5" />
-              Versión {currentVersion.toFixed(1)}
-            </button>
-
+          <div className="flex shrink-0 flex-wrap items-center gap-2 lg:flex-nowrap">
             <Popover
-              triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-xs font-semibold text-foreground transition-colors hover:bg-surface-muted"
+              triggerClassName={buttonClasses('secondary', 'md')}
               trigger={
                 <>
-                  <Layers className="h-3.5 w-3.5 text-warning" />
                   Plantillas
-                  <ChevronDown className="h-3 w-3 text-subtle" />
+                  <ChevronDown className="h-4 w-4 text-subtle" />
                 </>
               }
               panelClassName="w-80"
             >
               {(close) => (
                 <>
-                  <p className="px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-subtle">
-                    Plantillas clínicas
-                  </p>
-                  <div className="max-h-64 space-y-0.5 overflow-y-auto">
+                  <p className="px-2.5 py-1.5 text-[13px] font-medium text-muted">Plantillas clínicas</p>
+                  <div className="max-h-64 overflow-y-auto">
                     {templates.map((tpl) => (
                       <button
                         key={tpl.id}
@@ -311,10 +297,10 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
                           handleLoadTemplate(tpl);
                           close();
                         }}
-                        className="w-full rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-surface-muted"
+                        className="w-full rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-surface-muted"
                       >
-                        <span className="block text-sm font-semibold text-foreground">{tpl.name}</span>
-                        <span className="line-clamp-1 block text-xs text-muted">
+                        <span className="block text-sm font-medium text-foreground">{tpl.name}</span>
+                        <span className="line-clamp-1 block text-[13px] text-muted">
                           {tpl.targetKcal} kcal · {tpl.description}
                         </span>
                       </button>
@@ -335,19 +321,19 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
               )}
             </Popover>
 
-            <Button size="sm" onClick={() => setToolModal('pdf')}>
-              <Printer className="h-3.5 w-3.5" />
+            <Button onClick={() => setToolModal('pdf')}>
+              <Printer className="h-4 w-4" />
               PDF
             </Button>
-            <Button size="sm" variant="primary" onClick={() => setToolModal('share')}>
-              <Share2 className="h-3.5 w-3.5" />
+            <Button variant="primary" className="order-first w-full sm:order-none sm:w-auto" onClick={() => setToolModal('share')}>
+              <Share2 className="h-4 w-4" />
               Compartir
             </Button>
 
             <Popover
               triggerLabel="Más acciones"
-              triggerClassName="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-border bg-surface text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
-              trigger={<MoreHorizontal className="h-4 w-4" />}
+              triggerClassName="inline-flex h-10 w-10 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
+              trigger={<MoreHorizontal className="h-5 w-5" />}
             >
               {(close) => (
                 <>
@@ -393,94 +379,102 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
             </Popover>
           </div>
         </div>
-        {activeClient.notes && (
-          <p className="mt-3 border-t border-border pt-3 text-xs text-muted">{activeClient.notes}</p>
-        )}
-      </Card>
 
-      {/* Balance nutricional en vivo */}
-      <MacroSummaryBar totals={planTotals} client={activeClient} />
-
-      {/* Comidas */}
-      <div className="flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-base font-bold text-foreground">
-          <Utensils className="h-4 w-4 text-primary" />
-          Comidas del día
-          <span className="text-sm font-medium text-muted">({plan.meals.length})</span>
-        </h2>
-        <Popover
-          panelClassName="w-56"
-          triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-          trigger={
-            <>
-              <Plus className="h-3.5 w-3.5" />
-              Añadir comida
-            </>
-          }
+        <button
+          type="button"
+          onClick={() => setToolModal('history')}
+          className="mt-3 text-sm text-muted underline-offset-4 transition-colors hover:text-foreground hover:underline"
         >
-          {(close) => (
-            <>
-              {MEAL_TYPES.map((type) => (
-                <MenuItem
-                  key={type.name}
-                  onClick={() => {
-                    close();
-                    editor.addMeals([type]);
-                  }}
-                >
-                  {type.name}
-                  <span className="ml-auto text-xs text-muted">{type.time}</span>
-                </MenuItem>
-              ))}
-            </>
-          )}
-        </Popover>
-      </div>
+          Versión {currentVersion.toFixed(1)} · ver historial
+        </button>
+      </header>
 
-      {plan.meals.length === 0 && (
-        <Card className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-          <Utensils className="h-8 w-8 text-subtle" />
-          {planLoading ? (
-            <div className="w-full max-w-md space-y-3" aria-busy="true" aria-label="Cargando plan">
-              <div className="h-4 w-1/2 animate-pulse rounded bg-surface-muted" />
-              <div className="h-16 animate-pulse rounded-xl bg-surface-muted" />
-              <div className="h-16 animate-pulse rounded-xl bg-surface-muted" />
+      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-14">
+        <section aria-label="Comidas del plan" className="min-w-0 lg:order-first">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <h2 className="text-2xl font-medium text-foreground">Comidas del día</h2>
+            <Popover
+              panelClassName="w-60"
+              triggerClassName={buttonClasses('secondary', 'sm')}
+              trigger={
+                <>
+                  <Plus className="h-4 w-4" />
+                  Añadir comida
+                </>
+              }
+            >
+              {(close) => (
+                <>
+                  {MEAL_TYPES.map((type) => (
+                    <MenuItem
+                      key={type.name}
+                      onClick={() => {
+                        close();
+                        editor.addMeals([type]);
+                      }}
+                    >
+                      {type.name}
+                      <span className="ml-auto text-[13px] tabular-nums text-muted">{type.time}</span>
+                    </MenuItem>
+                  ))}
+                </>
+              )}
+            </Popover>
+          </div>
+
+          {plan.meals.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-border-strong px-6 py-14 text-center">
+              {planLoading ? (
+                <div className="mx-auto max-w-sm space-y-3" aria-busy="true" aria-label="Cargando plan">
+                  <div className="h-4 w-1/2 animate-pulse rounded bg-surface-muted" />
+                  <div className="h-14 animate-pulse rounded-lg bg-surface-muted" />
+                  <div className="h-14 animate-pulse rounded-lg bg-surface-muted" />
+                </div>
+              ) : (
+                <>
+                  <p className="font-display text-2xl font-medium text-foreground">Este plan está vacío</p>
+                  <p className="mx-auto mt-1.5 max-w-sm text-[15px] text-muted">
+                    Empieza con la estructura básica del día o añade las comidas una por una.
+                  </p>
+                  <Button
+                    variant="primary"
+                    className="mt-5"
+                    onClick={() =>
+                      editor.addMeals(
+                        MEAL_TYPES.filter((t) => ['Desayuno', 'Almuerzo', 'Merienda', 'Cena'].includes(t.name))
+                      )
+                    }
+                  >
+                    Crear estructura básica
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
-            <>
-              <div>
-                <p className="font-semibold text-foreground">Este plan está vacío</p>
-                <p className="text-sm text-muted">
-                  Añade las comidas del día y asigna grupos de intercambio a cada una.
-                </p>
-              </div>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => editor.addMeals(MEAL_TYPES.filter((t) => ['Desayuno', 'Almuerzo', 'Merienda', 'Cena'].includes(t.name)))}
-              >
-                Crear estructura básica (4 comidas)
-              </Button>
-            </>
+            <div className="space-y-6">
+              {plan.meals.map((meal) => (
+                <MealCard
+                  key={meal.id}
+                  meal={meal}
+                  exchangeGroups={MOCK_EXCHANGE_GROUPS}
+                  allFoods={MOCK_FOODS}
+                  onUpdateItem={editor.updateItem}
+                  onRemoveItem={editor.removeItem}
+                  onAddItem={editor.addItem}
+                  onOpenEquivalents={(item, group) => handleOpenEquivalents(item, group, meal.id)}
+                  onClearSuggestedFood={(mealId, itemId) => editor.setSuggestedFood(mealId, itemId, undefined)}
+                />
+              ))}
+            </div>
           )}
-        </Card>
-      )}
+        </section>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        {plan.meals.map((meal) => (
-          <MealCard
-            key={meal.id}
-            meal={meal}
-            exchangeGroups={MOCK_EXCHANGE_GROUPS}
-            allFoods={MOCK_FOODS}
-            onUpdateItem={editor.updateItem}
-            onRemoveItem={editor.removeItem}
-            onAddItem={editor.addItem}
-            onOpenEquivalents={(item, group) => handleOpenEquivalents(item, group, meal.id)}
-            onClearSuggestedFood={(mealId, itemId) => editor.setSuggestedFood(mealId, itemId, undefined)}
-          />
-        ))}
+        <aside className="lg:order-last lg:self-start lg:sticky lg:top-10">
+          <MacroSummaryBar totals={planTotals} client={activeClient} />
+        </aside>
       </div>
+
+      <MacroMiniBar totals={planTotals} client={activeClient} />
 
       {/* Modales */}
       <EquivalentsModal

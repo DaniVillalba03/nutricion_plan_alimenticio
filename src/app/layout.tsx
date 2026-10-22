@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Figtree, Newsreader, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Sans de interfaz: redondeada y muy legible en español y con cifras claras
+const ui = Figtree({
+  variable: "--font-ui",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+// Serif para titulares: le da carácter editorial y calidez a una herramienta clínica
+const display = Newsreader({
+  variable: "--font-display",
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+});
+
+const mono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
@@ -28,7 +36,7 @@ export default function RootLayout({
     <html
       lang="es"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${ui.variable} ${display.variable} ${mono.variable} h-full antialiased`}
     >
       <head>
         {/* Aplica el tema antes del primer pintado para evitar el parpadeo */}
@@ -38,7 +46,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground font-sans selection:bg-emerald-500 selection:text-white transition-colors duration-150">
+      <body className="min-h-full flex flex-col bg-background text-foreground font-sans transition-colors duration-150">
         <ThemeProvider>
           {children}
         </ThemeProvider>

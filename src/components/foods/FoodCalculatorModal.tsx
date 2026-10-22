@@ -146,8 +146,8 @@ export function FoodCalculatorModal({ open, onClose, onCreate }: FoodCalculatorM
           </Field>
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-border bg-surface-muted/50 p-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-subtle">Información nutricional por 100 g</h3>
+        <div className="space-y-3 rounded-xl bg-surface-muted/60 p-4">
+          <h3 className="font-display text-lg font-medium text-foreground">Información nutricional por 100 g</h3>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Field label="Kcal">
               {(p) => <Input {...p} type="number" min="0" step="1" value={form.kcal100g} onChange={num('kcal100g')} className="text-center font-semibold" />}
@@ -178,10 +178,10 @@ export function FoodCalculatorModal({ open, onClose, onCreate }: FoodCalculatorM
           </div>
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-primary/30 bg-primary-soft p-4">
+        <div className="space-y-3 rounded-xl bg-primary-soft p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-primary-soft-foreground">Grupo sugerido</p>
+              <p className="text-[13px] font-medium text-primary-soft-foreground">Grupo sugerido</p>
               <h4 className="text-lg font-bold text-foreground">{suggestion.suggestedGroup.name}</h4>
             </div>
             <Badge tone="primary">Confianza {suggestion.confidence}</Badge>

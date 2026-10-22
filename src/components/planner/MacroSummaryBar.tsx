@@ -2,45 +2,36 @@
 
 import React from 'react';
 import { PlanTotals, Client } from '@/types/nutrition';
-import { Flame, Wheat, Drumstick, Droplets, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Badge, Card } from '@/components/ui';
+import { cn } from '@/lib/utils';
 
 interface MacroSummaryBarProps {
   totals: PlanTotals;
   client: Client;
+  className?: string;
 }
 
-interface MacroTileProps {
-  icon: React.ReactNode;
+const nf = new Intl.NumberFormat('es-PY', { maximumFractionDigits: 1 });
+
+interface MacroRowProps {
   label: string;
-  value: number;
-  unit: string;
-  target: string;
-  /** Texto de la esquina superior derecha (porcentaje de la meta o del reparto). */
-  badge: string;
+  current: number;
+  target: number;
   percentOfTarget: number;
+  /** Clase de color de la barra (token de macronutriente). */
   barClass: string;
 }
 
-function MacroTile({ icon, label, value, unit, target, badge, percentOfTarget, barClass }: MacroTileProps) {
+function MacroRow({ label, current, target, percentOfTarget, barClass }: MacroRowProps) {
   return (
-    <div className="space-y-2 rounded-xl border border-border bg-surface-muted/50 p-3">
-      <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="flex min-w-0 items-center gap-1.5 truncate font-semibold text-foreground">
-          {icon}
-          {label}
+    <div>
+      <div className="flex items-baseline justify-between text-sm">
+        <span className="text-foreground">{label}</span>
+        <span className="tabular-nums text-muted">
+          <span className="font-medium text-foreground">{nf.format(current)}</span> / {nf.format(target)} g
         </span>
-        <span className="font-semibold text-muted">{badge}</span>
-      </div>
-      <div className="flex items-baseline justify-between">
-        <span className="text-xl font-bold tracking-tight text-foreground">
-          {value}
-          <span className="ml-0.5 text-xs font-medium text-muted">{unit}</span>
-        </span>
-        <span className="text-xs text-subtle">Meta: {target}</span>
       </div>
       <div
-        className="h-1.5 w-full overflow-hidden rounded-full bg-border"
+        className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-surface-muted"
         role="progressbar"
         aria-label={label}
         aria-valuenow={Math.round(percentOfTarget)}
@@ -48,7 +39,7 @@ function MacroTile({ icon, label, value, unit, target, badge, percentOfTarget, b
         aria-valuemax={100}
       >
         <div
-          className={`h-full rounded-full transition-all duration-300 ${barClass}`}
+          className={cn('h-full rounded-full transition-all duration-300', barClass)}
           style={{ width: `${Math.min(percentOfTarget, 100)}%` }}
         />
       </div>
@@ -56,80 +47,104 @@ function MacroTile({ icon, label, value, unit, target, badge, percentOfTarget, b
   );
 }
 
-export function MacroSummaryBar({ totals, client }: MacroSummaryBarProps) {
-  const isCaloriesOk = Math.abs(totals.calories.difference) <= 50;
-  const isCaloriesOver = totals.calories.difference > 50;
+/**
+ * Balance del plan frente a las metas del paciente. Una cifra grande (las calorías),
+ * una frase de estado y tres filas finas para los macronutrientes.
+ */
+export function MacroSummaryBar({ totals, client, className }: MacroSummaryBarProps) {
+  const diff = totals.calories.difference;
+  const onTarget = Math.abs(diff) <= 50;
+  const over = diff > 50;
 
-  const calBar = isCaloriesOk ? 'bg-primary' : isCaloriesOver ? 'bg-warning' : 'bg-info';
+  const status = onTarget
+    ? { text: 'Meta calórica alcanzada', tone: 'text-primary' }
+    : over
+      ? { text: `Excede la meta por ${nf.format(diff)} kcal`, tone: 'text-warning' }
+      : { text: `Faltan ${nf.format(Math.abs(diff))} kcal`, tone: 'text-muted' };
+
+  const calBar = onTarget ? 'bg-primary' : over ? 'bg-warning' : 'bg-foreground/70';
 
   return (
-    <Card className="space-y-3 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <h2 className="text-sm font-bold text-foreground">Balance nutricional</h2>
-          <Badge>{totals.totalExchanges} intercambios</Badge>
-        </div>
+    <section aria-label="Balance nutricional" className={cn('rounded-xl border border-border bg-surface p-5', className)}>
+      <p className="text-[13px] font-medium text-muted">Balance del día</p>
 
-        {isCaloriesOk ? (
-          <Badge tone="primary">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            Meta calórica alcanzada
-          </Badge>
-        ) : isCaloriesOver ? (
-          <Badge tone="warning">
-            <AlertCircle className="h-3.5 w-3.5" />
-            Excede por +{totals.calories.difference} kcal
-          </Badge>
-        ) : (
-          <Badge tone="info">
-            <AlertCircle className="h-3.5 w-3.5" />
-            Faltan {Math.abs(totals.calories.difference)} kcal
-          </Badge>
-        )}
+      <p className="mt-2 flex items-baseline gap-2">
+        <span className="font-display text-[44px] font-medium leading-none tabular-nums text-foreground">
+          {nf.format(totals.calories.current)}
+        </span>
+        <span className="text-sm tabular-nums text-muted">/ {nf.format(client.targetCalories)} kcal</span>
+      </p>
+      <p className={cn('mt-1.5 text-sm', status.tone)}>{status.text}</p>
+
+      <div
+        className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-surface-muted"
+        role="progressbar"
+        aria-label="Calorías"
+        aria-valuenow={Math.round(totals.calories.percentageOfTarget)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      >
+        <div
+          className={cn('h-full rounded-full transition-all duration-300', calBar)}
+          style={{ width: `${Math.min(totals.calories.percentageOfTarget, 100)}%` }}
+        />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MacroTile
-          icon={<Flame className="h-4 w-4 text-warning" />}
-          label="Calorías"
-          value={totals.calories.current}
-          unit="kcal"
-          target={`${client.targetCalories}`}
-          badge={`${totals.calories.percentageOfTarget}%`}
-          percentOfTarget={totals.calories.percentageOfTarget}
-          barClass={calBar}
-        />
-        <MacroTile
-          icon={<Wheat className="h-4 w-4 text-warning" />}
+      <div className="mt-6 space-y-4 border-t border-border pt-5">
+        <MacroRow
           label="Carbohidratos"
-          value={totals.carbohydrates.current}
-          unit="g"
-          target={`${client.targetMacros.carbohydrates} g`}
-          badge={`${totals.carbohydrates.distributionPct}%`}
+          current={totals.carbohydrates.current}
+          target={client.targetMacros.carbohydrates}
           percentOfTarget={totals.carbohydrates.percentageOfTarget}
-          barClass="bg-warning"
+          barClass="bg-macro-cho"
         />
-        <MacroTile
-          icon={<Drumstick className="h-4 w-4 text-danger" />}
+        <MacroRow
           label="Proteínas"
-          value={totals.proteins.current}
-          unit="g"
-          target={`${client.targetMacros.proteins} g`}
-          badge={`${totals.proteins.distributionPct}%`}
+          current={totals.proteins.current}
+          target={client.targetMacros.proteins}
           percentOfTarget={totals.proteins.percentageOfTarget}
-          barClass="bg-danger"
+          barClass="bg-macro-pro"
         />
-        <MacroTile
-          icon={<Droplets className="h-4 w-4 text-info" />}
+        <MacroRow
           label="Lípidos"
-          value={totals.lipids.current}
-          unit="g"
-          target={`${client.targetMacros.lipids} g`}
-          badge={`${totals.lipids.distributionPct}%`}
+          current={totals.lipids.current}
+          target={client.targetMacros.lipids}
           percentOfTarget={totals.lipids.percentageOfTarget}
-          barClass="bg-info"
+          barClass="bg-macro-lip"
         />
       </div>
-    </Card>
+
+      <p className="mt-5 text-[13px] tabular-nums text-muted">
+        {nf.format(totals.totalExchanges)} intercambios en total
+      </p>
+    </section>
+  );
+}
+
+/** Resumen fijo al pie, solo en móvil: las calorías son lo que más se mira mientras se arma el plan. */
+export function MacroMiniBar({ totals, client }: Pick<MacroSummaryBarProps, 'totals' | 'client'>) {
+  const diff = totals.calories.difference;
+  const onTarget = Math.abs(diff) <= 50;
+  const over = diff > 50;
+  const bar = onTarget ? 'bg-primary' : over ? 'bg-warning' : 'bg-foreground/70';
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/95 px-5 py-3 backdrop-blur lg:hidden">
+      <div className="mx-auto flex max-w-lg items-baseline justify-between text-sm">
+        <span className="tabular-nums">
+          <span className="font-display text-xl font-medium text-foreground">{nf.format(totals.calories.current)}</span>
+          <span className="text-muted"> / {nf.format(client.targetCalories)} kcal</span>
+        </span>
+        <span className={onTarget ? 'text-primary' : over ? 'text-warning' : 'text-muted'}>
+          {onTarget ? 'Meta alcanzada' : over ? `+${nf.format(diff)} kcal` : `Faltan ${nf.format(Math.abs(diff))}`}
+        </span>
+      </div>
+      <div className="mx-auto mt-2 h-1 max-w-lg overflow-hidden rounded-full bg-surface-muted">
+        <div
+          className={cn('h-full rounded-full transition-all duration-300', bar)}
+          style={{ width: `${Math.min(totals.calories.percentageOfTarget, 100)}%` }}
+        />
+      </div>
+    </div>
   );
 }

@@ -99,19 +99,16 @@ export function EquivalentsModal({
               <p className="mt-1 text-xs text-muted">Intenta con otro término de búsqueda o limpia el filtro.</p>
             </div>
           ) : (
-            <ul className="space-y-3">
+            <ul className="divide-y divide-border">
               {equivalents.map((item) => {
                 const isSelected = selectedFoodId === item.food.id;
                 return (
                   <li
                     key={item.food.id}
                     className={cn(
-                      'flex flex-col items-start justify-between gap-3 rounded-2xl border p-4 transition-colors sm:flex-row sm:items-center',
-                      item.isExcluded
-                        ? 'border-danger/30 bg-danger-soft'
-                        : isSelected
-                          ? 'border-primary bg-primary-soft'
-                          : 'border-border bg-surface hover:border-border-strong'
+                      'flex flex-col items-start justify-between gap-3 py-4 sm:flex-row sm:items-center',
+                      item.isExcluded && 'opacity-75',
+                      isSelected && '-mx-3 rounded-lg bg-primary-soft px-3'
                     )}
                   >
                     <div className="min-w-0 flex-1">
@@ -137,7 +134,7 @@ export function EquivalentsModal({
                       </div>
 
                       {item.isExcluded && (
-                        <div className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-danger/15 px-2.5 py-1 text-xs font-semibold text-danger-soft-foreground">
+                        <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-danger-soft px-2 py-1 text-[13px] font-medium text-danger-soft-foreground">
                           <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                           <span>{item.exclusionReason}</span>
                         </div>

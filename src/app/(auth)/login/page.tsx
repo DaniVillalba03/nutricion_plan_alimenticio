@@ -3,18 +3,8 @@
 import React, { useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient, isSupabaseConfigured, isDemoAccessEnabled } from '@/lib/supabase/client';
-import { Badge, Button, Card, Field, Input } from '@/components/ui';
-import {
-  Apple,
-  Lock,
-  Mail,
-  ArrowRight,
-  ShieldCheck,
-  Sparkles,
-  AlertCircle,
-  CheckCircle2,
-  Stethoscope,
-} from 'lucide-react';
+import { Button, Field, Input } from '@/components/ui';
+import { ArrowRight } from 'lucide-react';
 
 function LoginForm() {
   const router = useRouter();
@@ -109,27 +99,81 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 text-foreground">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-primary text-primary-foreground shadow-lg mb-2">
-            <Apple className="w-9 h-9" />
-          </div>
-          <div className="flex items-center justify-center">
-            <Badge tone="primary">Lic. Laura Molinas · Reg. 6020</Badge>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">NutriPlan PY</h1>
-          <p className="text-sm text-muted max-w-xs mx-auto">
-            Plataforma clínica de planificación por intercambios y portal del paciente
+    <div className="grid min-h-screen bg-background text-foreground lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+      {/* Panel de marca: solo tipografía y una cita, sin ilustraciones genéricas */}
+      <aside className="hidden flex-col justify-between bg-surface-muted p-12 lg:flex">
+        <p className="font-display text-2xl font-medium tracking-tight">
+          NutriPlan<span className="ml-1 align-super font-sans text-[11px] font-semibold tracking-wider text-primary">PY</span>
+        </p>
+        <blockquote className="max-w-md">
+          <p className="font-display text-[34px] font-medium italic leading-snug text-foreground">
+            Un hábito que fue aprendido puede ser reeducado.
           </p>
-        </div>
+          <footer className="mt-5 text-[15px] text-muted">Lic. Laura Molinas · Reg. Prof. 6020</footer>
+        </blockquote>
+        <p className="text-[13px] text-muted">Planificación por intercambios con alimentos de Paraguay</p>
+      </aside>
 
-        <Card className="p-6 sm:p-8 space-y-5 shadow-xl">
-          <div className="flex items-center justify-between border-b border-border pb-3">
-            <h2 className="text-sm font-bold flex items-center gap-2">
-              <Stethoscope className="w-4 h-4 text-primary" />
-              {isSignUp ? 'Registro profesional' : 'Acceso profesional'}
-            </h2>
+      <main className="flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          <p className="mb-10 font-display text-2xl font-medium tracking-tight lg:hidden">
+            NutriPlan<span className="ml-1 align-super font-sans text-[11px] font-semibold tracking-wider text-primary">PY</span>
+          </p>
+
+          <h1 className="text-[32px] font-medium leading-tight">{isSignUp ? 'Crea tu cuenta' : 'Bienvenida de vuelta'}</h1>
+          <p className="mt-2 text-[15px] text-muted">
+            {isSignUp
+              ? 'Registro profesional para nutricionistas.'
+              : 'Ingresa con tu correo para ver a tus pacientes y sus planes.'}
+          </p>
+
+          {errorMsg && (
+            <p role="alert" className="mt-6 rounded-lg bg-danger-soft px-4 py-3 text-sm text-danger-soft-foreground">
+              {errorMsg}
+            </p>
+          )}
+          {successMsg && (
+            <p role="status" className="mt-6 rounded-lg bg-primary-soft px-4 py-3 text-sm text-primary-soft-foreground">
+              {successMsg}
+            </p>
+          )}
+
+          <form onSubmit={handleAuth} className="mt-8 space-y-5">
+            <Field label="Correo electrónico">
+              {(p) => (
+                <Input
+                  {...p}
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nombre@correo.com"
+                />
+              )}
+            </Field>
+
+            <Field label="Contraseña">
+              {(p) => (
+                <Input
+                  {...p}
+                  type="password"
+                  required
+                  autoComplete={isSignUp ? 'new-password' : 'current-password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              )}
+            </Field>
+
+            <Button type="submit" variant="primary" disabled={isPending} className="w-full">
+              {isPending ? 'Procesando…' : isSignUp ? 'Crear cuenta' : 'Ingresar'}
+              {!isPending && <ArrowRight className="h-4 w-4" />}
+            </Button>
+          </form>
+
+          <p className="mt-6 text-[15px] text-muted">
+            {isSignUp ? '¿Ya tienes cuenta? ' : '¿Todavía no tienes cuenta? '}
             <button
               type="button"
               onClick={() => {
@@ -137,91 +181,25 @@ function LoginForm() {
                 setErrorMsg(null);
                 setSuccessMsg(null);
               }}
-              className="text-xs font-medium text-primary hover:underline"
+              className="font-medium text-primary underline-offset-4 hover:underline"
             >
-              {isSignUp ? '¿Ya tienes cuenta? Iniciar' : 'Crear cuenta'}
+              {isSignUp ? 'Ingresa' : 'Crea una'}
             </button>
-          </div>
-
-          {errorMsg && (
-            <div role="alert" className="p-3 rounded-xl bg-danger-soft text-danger-soft-foreground text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {successMsg && (
-            <div role="status" className="p-3 rounded-xl bg-primary-soft text-primary-soft-foreground text-xs flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>{successMsg}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleAuth} className="space-y-4">
-            <Field label="Correo electrónico">
-              {(p) => (
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-subtle absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <Input
-                    {...p}
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="ejemplo@nutriplan.py"
-                    className="pl-10"
-                  />
-                </div>
-              )}
-            </Field>
-
-            <Field label="Contraseña">
-              {(p) => (
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-subtle absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <Input
-                    {...p}
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="pl-10"
-                  />
-                </div>
-              )}
-            </Field>
-
-            <Button type="submit" variant="primary" disabled={isPending} className="w-full">
-              {isPending ? (
-                'Procesando...'
-              ) : (
-                <>
-                  {isSignUp ? 'Crear cuenta profesional' : 'Ingresar al constructor'}
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </Button>
-          </form>
+          </p>
 
           {demoEnabled && (
-            <div className="pt-2 border-t border-border">
-              <Button onClick={handleDemoAccess} className="w-full">
-                <Sparkles className="w-3.5 h-3.5 text-warning" />
-                Acceso rápido demo (Lic. Laura Molinas)
-              </Button>
+            <div className="mt-8 border-t border-border pt-6">
+              <button
+                type="button"
+                onClick={handleDemoAccess}
+                className="text-sm text-muted underline-offset-4 hover:text-foreground hover:underline"
+              >
+                Entrar con datos de demostración
+              </button>
             </div>
           )}
-        </Card>
-
-        <div className="text-center space-y-1 text-xs text-subtle">
-          <p className="flex items-center justify-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-            Seguridad RLS activa por nutricionista · Asunción, Paraguay
-          </p>
-          <p>Reg. Prof.: 6020 · Cumplimiento de estándares nutricionales nacionales</p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

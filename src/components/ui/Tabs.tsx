@@ -13,7 +13,7 @@ interface TabsProps<T extends string> {
 /** Control segmentado para alternar vistas o filtros cortos. */
 export function Tabs<T extends string>({ value, onChange, options, className }: TabsProps<T>) {
   return (
-    <div role="tablist" className={cn('inline-flex rounded-xl bg-surface-muted p-1', className)}>
+    <div role="tablist" className={cn('inline-flex rounded-lg bg-surface-muted p-0.5', className)}>
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -22,8 +22,8 @@ export function Tabs<T extends string>({ value, onChange, options, className }: 
           aria-selected={opt.value === value}
           onClick={() => onChange(opt.value)}
           className={cn(
-            'rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors',
-            opt.value === value ? 'bg-surface text-foreground shadow-sm' : 'text-muted hover:text-foreground'
+            'rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors',
+            opt.value === value ? 'bg-surface text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.08)]' : 'text-muted hover:text-foreground'
           )}
         >
           {opt.label}

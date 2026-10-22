@@ -65,7 +65,7 @@ export function SharePlanModal({ isOpen, onClose, client, plan, onUpdateShareSet
       <div className="space-y-5">
         <div
           className={cn(
-            'flex items-center justify-between gap-3 rounded-2xl p-3.5 text-xs',
+            'flex items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm',
             isRevoked ? 'bg-danger-soft text-danger-soft-foreground' : 'bg-primary-soft text-primary-soft-foreground'
           )}
         >

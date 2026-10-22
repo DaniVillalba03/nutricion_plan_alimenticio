@@ -1,49 +1,55 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserPlus, Users } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { usePatients } from '@/components/patients/PatientsProvider';
 import { NewPatientModal } from '@/components/patients/NewPatientModal';
 import { PatientCard } from '@/components/patients/PatientCard';
-import { Button, Card, useToast } from '@/components/ui';
+import { Button, Card, PageHeader, useToast } from '@/components/ui';
 
 export default function ClientsPage() {
-  const { clients, selectClient, createClient } = usePatients();
+  const { clients, loading, selectClient, createClient } = usePatients();
   const { toast } = useToast();
   const [isNewOpen, setIsNewOpen] = useState(false);
 
   return (
-    <div className="space-y-6 pb-12">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Pacientes</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Pacientes y metas nutricionales
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted">
-            Perfiles clínicos con requerimientos calóricos, distribución de macronutrientes y restricciones de alimentos.
-          </p>
-        </div>
-        <Button variant="primary" onClick={() => setIsNewOpen(true)} className="shrink-0">
-          <UserPlus className="h-4 w-4" />
-          Nuevo paciente
-        </Button>
-      </div>
+    <div className="space-y-10">
+      <PageHeader
+        eyebrow="Pacientes"
+        title="Tus pacientes"
+        description="Requerimientos calóricos, reparto de macronutrientes y restricciones de cada perfil."
+        actions={
+          <Button variant="primary" onClick={() => setIsNewOpen(true)}>
+            <UserPlus className="h-4 w-4" />
+            Nuevo paciente
+          </Button>
+        }
+      />
 
       {clients.length === 0 ? (
-        <Card className="flex flex-col items-center gap-3 px-6 py-14 text-center">
-          <Users className="h-8 w-8 text-subtle" />
-          <p className="font-semibold text-foreground">Aún no hay pacientes</p>
-          <Button variant="primary" size="sm" onClick={() => setIsNewOpen(true)}>
-            Crear el primero
-          </Button>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          {clients.map((client) => (
-            <PatientCard key={client.id} client={client} onOpenPlan={selectClient} />
-          ))}
+        <div className="rounded-xl border border-dashed border-border-strong px-6 py-16 text-center">
+          {loading ? (
+            <p className="text-[15px] text-muted">Cargando pacientes…</p>
+          ) : (
+            <>
+              <p className="font-display text-2xl font-medium text-foreground">Aún no hay pacientes</p>
+              <p className="mx-auto mt-1.5 max-w-sm text-[15px] text-muted">
+                Crea el primero para empezar a armar su plan de intercambios.
+              </p>
+              <Button variant="primary" className="mt-5" onClick={() => setIsNewOpen(true)}>
+                Crear el primer paciente
+              </Button>
+            </>
+          )}
         </div>
+      ) : (
+        <Card>
+          <ul className="divide-y divide-border">
+            {clients.map((client) => (
+              <PatientCard key={client.id} client={client} onOpenPlan={selectClient} />
+            ))}
+          </ul>
+        </Card>
       )}
 
       <NewPatientModal

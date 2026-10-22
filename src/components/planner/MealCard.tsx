@@ -2,11 +2,13 @@
 
 import React from 'react';
 import { MealPlanMeal, MealPlanItem, ExchangeGroup, Food } from '@/types/nutrition';
-import { formatFriendlyFraction, QUICK_EXCHANGE_PRESETS } from '@/core/exchange-engine';
-import { Clock, Plus, Trash2, Search, Sparkles, X, Flame } from 'lucide-react';
-import { Badge, Card } from '@/components/ui';
+import { formatFriendlyFraction } from '@/core/exchange-engine';
+import { Plus, Trash2, X } from 'lucide-react';
+import { Card } from '@/components/ui';
 import { Popover } from '@/components/ui/Popover';
-import { cn } from '@/lib/utils';
+import { ExchangeStepper } from './ExchangeStepper';
+
+const nf = new Intl.NumberFormat('es-PY', { maximumFractionDigits: 2 });
 
 interface MealCardProps {
   meal: MealPlanMeal;
@@ -19,9 +21,10 @@ interface MealCardProps {
   onClearSuggestedFood: (mealId: string, itemId: string) => void;
 }
 
-const ADD_BUTTON =
-  'inline-flex h-8 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover';
-
+/**
+ * Una comida del plan: encabezado con totales y una lista de grupos separados por líneas
+ * finas (sin cajas dentro de cajas). El alimento sugerido es una segunda línea de texto.
+ */
 export function MealCard({
   meal,
   exchangeGroups,
@@ -37,7 +40,6 @@ export function MealCard({
 
   let mealCalories = 0;
   let mealExchanges = 0;
-
   for (const item of meal.items) {
     const group = groupsMap.get(item.groupId);
     if (!group) continue;
@@ -46,94 +48,61 @@ export function MealCard({
   }
 
   const groupMenu = (close: () => void) => (
-    <>
-      <p className="px-2.5 py-1 text-xs font-semibold uppercase tracking-wider text-subtle">Grupo de intercambio</p>
-      <div className="max-h-60 space-y-0.5 overflow-y-auto">
-        {exchangeGroups.map((g) => (
-          <button
-            key={g.id}
-            type="button"
-            onClick={() => {
-              onAddItem(meal.id, g.id, 1.0);
-              close();
-            }}
-            className="flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-left text-sm transition-colors hover:bg-surface-muted"
-          >
-            <span className="font-medium text-foreground">{g.name}</span>
-            <span className="text-xs text-muted">{g.referenceMacros.calories} kcal</span>
-          </button>
-        ))}
-      </div>
-    </>
+    <div className="max-h-72 overflow-y-auto">
+      {exchangeGroups.map((g) => (
+        <button
+          key={g.id}
+          type="button"
+          onClick={() => {
+            onAddItem(meal.id, g.id, 1.0);
+            close();
+          }}
+          className="flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-surface-muted"
+        >
+          <span className="flex items-center gap-2.5 text-foreground">
+            <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: g.color.accent }} aria-hidden="true" />
+            {g.name}
+          </span>
+          <span className="text-[13px] tabular-nums text-muted">{g.referenceMacros.calories} kcal</span>
+        </button>
+      ))}
+    </div>
+  );
+
+  const addButton = (
+    <Popover
+      align="right"
+      panelClassName="w-72"
+      triggerLabel="Añadir grupo a esta comida"
+      triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-primary transition-colors hover:bg-primary-soft"
+      trigger={
+        <>
+          <Plus className="h-3.5 w-3.5" />
+          Añadir grupo
+        </>
+      }
+    >
+      {groupMenu}
+    </Popover>
   );
 
   return (
-    <Card className="flex flex-col overflow-hidden">
-      {/* Encabezado de la comida */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface-muted/50 px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-xs font-bold text-primary-soft-foreground">
-            {meal.name.slice(0, 2).toUpperCase()}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-foreground">{meal.name}</h3>
-              {meal.time && (
-                <span className="flex items-center gap-1 text-xs text-muted">
-                  <Clock className="h-3 w-3" /> {meal.time}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted">
-              {meal.items.length} {meal.items.length === 1 ? 'grupo' : 'grupos'}
-            </p>
-          </div>
+    <Card className="overflow-visible">
+      <div className="flex items-baseline justify-between gap-4 px-5 pb-1 pt-5">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <h3 className="font-display text-[22px] font-medium leading-tight text-foreground">{meal.name}</h3>
+          {meal.time && <span className="text-sm tabular-nums text-muted">{meal.time}</span>}
         </div>
-
-        <div className="flex items-center gap-2">
-          <Badge>{Math.round(mealExchanges * 100) / 100} int</Badge>
-          <Badge tone="primary">
-            <Flame className="h-3 w-3" />
-            {Math.round(mealCalories)} kcal
-          </Badge>
-          <Popover
-            panelClassName="w-64"
-            triggerLabel="Añadir grupo a esta comida"
-            triggerClassName={ADD_BUTTON}
-            trigger={
-              <>
-                <Plus className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Añadir</span>
-              </>
-            }
-          >
-            {groupMenu}
-          </Popover>
-        </div>
+        <p className="shrink-0 text-sm tabular-nums text-muted">
+          {nf.format(mealExchanges)} int · {nf.format(Math.round(mealCalories))} kcal
+        </p>
       </div>
 
-      {/* Grupos */}
-      <div className="flex-1 space-y-2 p-3.5">
-        {meal.items.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border py-6 text-center">
-            <p className="text-xs text-muted">Sin grupos asignados a esta comida.</p>
-            <div className="mt-2 flex justify-center">
-              <Popover
-                align="left"
-                panelClassName="w-64"
-                triggerClassName="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-                trigger={
-                  <>
-                    <Plus className="h-3 w-3" /> Añadir primer grupo
-                  </>
-                }
-              >
-                {groupMenu}
-              </Popover>
-            </div>
-          </div>
-        ) : (
-          meal.items.map((item) => {
+      {meal.items.length === 0 ? (
+        <p className="px-5 py-6 text-sm text-muted">Esta comida todavía no tiene grupos.</p>
+      ) : (
+        <ul className="mt-2 divide-y divide-border border-t border-border">
+          {meal.items.map((item) => {
             const group = groupsMap.get(item.groupId);
             if (!group) return null;
 
@@ -145,109 +114,79 @@ export function MealCard({
               : '';
 
             return (
-              <div
-                key={item.id}
-                className="space-y-2.5 rounded-xl border border-border bg-surface-muted/40 p-3 transition-colors hover:border-border-strong"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: group.color.accent }}
-                      aria-hidden="true"
-                    />
-                    <span className="truncate text-sm font-semibold text-foreground">{group.name}</span>
-                    <span className="shrink-0 text-xs text-muted">{itemCalories} kcal</span>
-                  </div>
+              <li key={item.id} className="group flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-4 sm:py-3.5">
+                <div className="flex min-w-0 flex-1 items-start gap-3.5">
+                <span
+                  className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: group.color.accent }}
+                  aria-hidden="true"
+                />
 
-                  <div className="flex shrink-0 items-center gap-1">
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-baseline gap-2 text-[15px] text-foreground">
+                    <span className="truncate font-medium">{group.name}</span>
+                    <span className="shrink-0 text-[13px] tabular-nums text-muted">{itemCalories} kcal</span>
+                  </p>
+
+                  {suggestedFood ? (
+                    <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted">
+                      <span className="truncate">
+                        {suggestedFood.name} · {suggestedHouseholdQty} {suggestedFood.householdUnit} ({suggestedGrams} g)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onClearSuggestedFood(meal.id, item.id)}
+                        className="shrink-0 rounded p-0.5 text-subtle transition-colors hover:bg-surface-muted hover:text-foreground"
+                        aria-label="Quitar alimento sugerido"
+                        title="Quitar alimento sugerido"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </p>
+                  ) : (
                     <button
                       type="button"
                       onClick={() => onOpenEquivalents(item, group)}
-                      className="inline-flex h-7 items-center gap-1 rounded-lg border border-border bg-surface px-2 text-xs font-semibold text-primary-soft-foreground transition-colors hover:bg-primary-soft"
-                      title="Ver equivalencias locales en Paraguay"
+                      className="mt-0.5 text-sm text-primary underline-offset-4 hover:underline"
                     >
-                      <Search className="h-3 w-3" />
-                      Equivalentes
+                      Elegir alimento equivalente
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => onRemoveItem(meal.id, item.id)}
-                      className="rounded-lg p-1.5 text-subtle transition-colors hover:bg-danger-soft hover:text-danger"
-                      title="Quitar grupo"
-                      aria-label={`Quitar ${group.name}`}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
+                  )}
+                </div>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Porción en intercambios">
-                    {QUICK_EXCHANGE_PRESETS.map((preset) => {
-                      const isCurrent = Math.abs(item.exchangeCount - preset) < 0.01;
-                      return (
-                        <button
-                          key={preset}
-                          type="button"
-                          onClick={() => onUpdateItem(meal.id, item.id, preset)}
-                          aria-pressed={isCurrent}
-                          className={cn(
-                            'h-7 min-w-8 rounded-lg px-2 text-xs font-semibold transition-colors',
-                            isCurrent
-                              ? 'bg-primary text-primary-foreground'
-                              : 'border border-border bg-surface text-muted hover:bg-surface-muted hover:text-foreground'
-                          )}
-                        >
-                          {formatFriendlyFraction(preset)}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <input
-                      type="number"
-                      step="0.25"
-                      min="0.25"
-                      max="10"
-                      value={item.exchangeCount}
-                      onChange={(e) => {
-                        const val = parseFloat(e.target.value);
-                        if (!isNaN(val) && val > 0) onUpdateItem(meal.id, item.id, val);
-                      }}
-                      className="h-7 w-14 rounded-lg border border-border bg-surface text-center text-xs font-semibold text-foreground focus:border-ring focus:outline-none"
-                      aria-label="Cantidad manual de intercambios"
-                    />
-                    <span className="text-xs text-muted">int</span>
-                  </div>
-                </div>
-
-                {suggestedFood && (
-                  <div className="flex items-center justify-between gap-2 rounded-lg bg-primary-soft px-2.5 py-2 text-xs">
-                    <div className="flex min-w-0 items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-primary" />
-                      <span className="truncate font-semibold text-primary-soft-foreground">{suggestedFood.name}:</span>
-                      <span className="truncate text-primary-soft-foreground/80">
-                        {suggestedHouseholdQty} {suggestedFood.householdUnit} ({suggestedGrams} g)
-                      </span>
-                    </div>
+                <div className="flex shrink-0 items-center justify-between gap-1.5 pl-6 sm:justify-end sm:pl-0">
+                  {suggestedFood && (
                     <button
                       type="button"
-                      onClick={() => onClearSuggestedFood(meal.id, item.id)}
-                      className="rounded p-1 text-primary-soft-foreground transition-colors hover:bg-primary/20"
-                      title="Quitar sugerencia fija"
-                      aria-label="Quitar sugerencia fija"
+                      onClick={() => onOpenEquivalents(item, group)}
+                      className="mr-auto inline-flex h-8 items-center rounded-lg px-2.5 text-[13px] font-medium text-primary transition-colors hover:bg-primary-soft sm:mr-0"
                     >
-                      <X className="h-3 w-3" />
+                      Cambiar
                     </button>
-                  </div>
-                )}
-              </div>
+                  )}
+                  <ExchangeStepper
+                    value={item.exchangeCount}
+                    onChange={(n) => onUpdateItem(meal.id, item.id, n)}
+                    label={group.name}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => onRemoveItem(meal.id, item.id)}
+                    className="rounded-lg p-2 text-subtle opacity-100 transition-colors hover:bg-danger-soft hover:text-danger sm:opacity-0 sm:focus-visible:opacity-100 sm:group-hover:opacity-100"
+                    title="Quitar grupo"
+                    aria-label={`Quitar ${group.name}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </li>
             );
-          })
-        )}
-      </div>
+          })}
+        </ul>
+      )}
+
+      <div className="flex border-t border-border px-3 py-2">{addButton}</div>
     </Card>
   );
 }

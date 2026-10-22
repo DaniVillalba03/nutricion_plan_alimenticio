@@ -143,7 +143,7 @@ export function NewPatientModal({ open, onClose, onCreate }: NewPatientModalProp
     >
       <form id="new-patient-form" onSubmit={handleSubmit} noValidate className="space-y-6">
         <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-subtle">Datos personales</h3>
+          <h3 className="font-display text-lg font-medium text-foreground">Datos personales</h3>
           <Field label="Nombre completo" error={errors.fullName}>
             {(p) => (
               <Input {...p} value={form.fullName} onChange={(e) => set('fullName', e.target.value)} placeholder="Ej. Juan Pérez" />
@@ -190,7 +190,7 @@ export function NewPatientModal({ open, onClose, onCreate }: NewPatientModalProp
         </section>
 
         <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-subtle">Metas nutricionales</h3>
+          <h3 className="font-display text-lg font-medium text-foreground">Metas nutricionales</h3>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Field label="Calorías (kcal)" error={errors.targetKcal} className="col-span-2 sm:col-span-1">
               {(p) => <Input {...p} type="number" inputMode="numeric" value={form.targetKcal} onChange={(e) => set('targetKcal', e.target.value)} />}
@@ -223,7 +223,7 @@ export function NewPatientModal({ open, onClose, onCreate }: NewPatientModalProp
         </section>
 
         <section className="space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-subtle">Restricciones y notas</h3>
+          <h3 className="font-display text-lg font-medium text-foreground">Restricciones y notas</h3>
           <div className="flex flex-wrap gap-1.5">
             {[...COMMON_EXCLUSIONS, ...exclusions.filter((e) => !COMMON_EXCLUSIONS.includes(e))].map((name) => {
               const active = exclusions.includes(name);

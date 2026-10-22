@@ -3,60 +3,23 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Utensils, BookOpen, Users, Menu, X, Apple, UploadCloud, LogOut } from 'lucide-react';
+import { Utensils, BookOpen, Users, Menu, X, UploadCloud, LogOut } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  {
-    href: '/dashboard',
-    label: 'Constructor de Planes',
-    icon: Utensils,
-    description: 'Crear y ajustar intercambios en vivo',
-  },
-  {
-    href: '/dashboard/foods',
-    label: 'Catálogo de Alimentos',
-    icon: BookOpen,
-    description: 'Grupos y equivalencias en Paraguay',
-  },
-  {
-    href: '/dashboard/clients',
-    label: 'Pacientes y Metas',
-    icon: Users,
-    description: 'Metas calóricas y restricciones',
-  },
-  {
-    href: '/dashboard/import',
-    label: 'Importador Masivo',
-    icon: UploadCloud,
-    description: 'Validador Atwater y base extendida',
-  },
+  { href: '/dashboard', label: 'Constructor de planes', icon: Utensils },
+  { href: '/dashboard/clients', label: 'Pacientes', icon: Users },
+  { href: '/dashboard/foods', label: 'Catálogo de alimentos', icon: BookOpen },
+  { href: '/dashboard/import', label: 'Importar alimentos', icon: UploadCloud },
 ];
 
-function Brand({ size = 'md' }: { size?: 'sm' | 'md' }) {
+/** Marca tipográfica: sin icono ni caja, solo el nombre. */
+function Wordmark({ className }: { className?: string }) {
   return (
-    <span className="flex items-center gap-2.5">
-      <span
-        className={cn(
-          'flex items-center justify-center rounded-xl bg-primary text-primary-foreground',
-          size === 'md' ? 'h-10 w-10' : 'h-8 w-8'
-        )}
-      >
-        <Apple className={size === 'md' ? 'h-5 w-5' : 'h-4 w-4'} />
-      </span>
-      <span className="leading-tight">
-        <span className="flex items-center gap-1.5">
-          <span className={cn('font-bold tracking-tight text-foreground', size === 'md' ? 'text-lg' : 'text-base')}>
-            NutriPlan
-          </span>
-          <span className="rounded bg-primary-soft px-1.5 py-0.5 text-xs font-semibold text-primary-soft-foreground">
-            PY
-          </span>
-        </span>
-        {size === 'md' && <span className="block text-xs text-muted">Motor de intercambios</span>}
-      </span>
+    <span className={cn('font-display text-[22px] font-medium leading-none tracking-tight text-foreground', className)}>
+      NutriPlan<span className="ml-1 align-super font-sans text-[10px] font-semibold tracking-wider text-primary">PY</span>
     </span>
   );
 }
@@ -82,14 +45,14 @@ export function Sidebar() {
   return (
     <>
       {/* Cabecera móvil */}
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-surface px-4 py-3 lg:hidden">
-        <Brand size="sm" />
-        <div className="flex items-center gap-2">
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/90 px-5 py-3.5 backdrop-blur lg:hidden">
+        <Wordmark />
+        <div className="flex items-center gap-1">
           <ThemeToggle />
           <button
             type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="rounded-xl p-2 text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
+            className="rounded-lg p-2 text-muted transition-colors hover:bg-surface-muted hover:text-foreground"
             aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
             aria-expanded={mobileOpen}
           >
@@ -108,13 +71,13 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-surface transition-transform duration-200 ease-in-out lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col border-r border-border bg-background transition-transform duration-200 ease-in-out lg:translate-x-0',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex items-center justify-between border-b border-border p-5">
+        <div className="flex items-center justify-between px-6 pb-6 pt-7">
           <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
-            <Brand />
+            <Wordmark />
           </Link>
           <button
             type="button"
@@ -126,8 +89,7 @@ export function Sidebar() {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Navegación principal">
-          <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-subtle">Navegación</p>
+        <nav className="flex-1 space-y-0.5 px-3" aria-label="Navegación principal">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href);
@@ -139,49 +101,34 @@ export function Sidebar() {
                 onClick={() => setMobileOpen(false)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'flex items-start gap-3 rounded-xl px-3.5 py-3 transition-colors',
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[15px] transition-colors',
                   isActive
-                    ? 'bg-primary-soft text-primary-soft-foreground'
-                    : 'text-muted hover:bg-surface-muted hover:text-foreground'
+                    ? 'bg-surface-muted font-medium text-foreground'
+                    : 'text-muted hover:bg-surface-muted/60 hover:text-foreground'
                 )}
               >
-                <Icon className={cn('mt-0.5 h-5 w-5 shrink-0', isActive ? 'text-primary' : 'text-subtle')} />
-                <span className="min-w-0 flex-1">
-                  <span className={cn('block text-sm leading-tight', isActive ? 'font-semibold' : 'font-medium')}>
-                    {item.label}
-                  </span>
-                  <span className="mt-0.5 block truncate text-xs text-subtle">{item.description}</span>
-                </span>
+                <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-primary' : 'text-subtle')} strokeWidth={1.75} />
+                {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="space-y-2 border-t border-border p-4">
-          <div className="flex items-center justify-between gap-2 rounded-xl border border-border bg-surface-muted/50 p-2">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                LM
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-xs font-semibold text-foreground">Lic. Laura Molinas</span>
-                <span className="block truncate text-xs text-muted">Reg. Prof. 6020</span>
-              </span>
-            </div>
-            <div className="flex shrink-0 items-center gap-1">
-              <ThemeToggle className="border-transparent bg-transparent" />
-              <button
-                type="button"
-                onClick={logout}
-                title="Cerrar sesión"
-                aria-label="Cerrar sesión"
-                className="rounded-xl p-2 text-subtle transition-colors hover:bg-danger-soft hover:text-danger"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </div>
+        <div className="border-t border-border px-5 py-4">
+          <p className="text-sm font-medium text-foreground">Lic. Laura Molinas</p>
+          <p className="text-[13px] text-muted">Reg. Prof. 6020</p>
+          <div className="-ml-2 mt-3 flex items-center gap-1">
+            <ThemeToggle showLabel />
+            <button
+              type="button"
+              onClick={logout}
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-danger-soft hover:text-danger"
+            >
+              <LogOut className="h-[18px] w-[18px]" strokeWidth={1.75} />
+            </button>
           </div>
-          <p className="px-1 text-xs text-subtle">NutriPlan PY v2.0</p>
         </div>
       </aside>
     </>

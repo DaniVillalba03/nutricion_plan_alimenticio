@@ -4,9 +4,9 @@ import React, { useState, useMemo } from 'react';
 import { MOCK_EXCHANGE_GROUPS, MOCK_FOODS } from '@/lib/mock-data';
 import { Client, Food, MealPlan, MealPlanMeal, MealPlanItem, ExchangeGroup } from '@/types/nutrition';
 import { formatFriendlyFraction, getFoodEquivalents } from '@/core/exchange-engine';
-import { Apple, Clock, ArrowLeftRight, CheckCircle2, Circle, Search, ShieldAlert } from 'lucide-react';
+import { ArrowLeftRight, CheckCircle2, Circle, Search, ShieldAlert } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { Badge, Button, Card, Modal, ToastProvider, useToast } from '@/components/ui';
+import { Modal, ToastProvider, useToast } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
 interface ChangeModalState {
@@ -94,114 +94,78 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b border-border bg-surface/90 px-4 py-3 backdrop-blur-md">
-        <div className="mx-auto flex max-w-md items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Apple className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="text-sm font-bold tracking-tight">NutriPlan PY</span>
-              <p className="text-xs font-medium text-primary">Lic. Laura Molinas · Reg. 6020</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Badge tone="primary">Mi plan activo</Badge>
-          </div>
+      <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
+        <div className="mx-auto flex max-w-lg items-center justify-between px-5 py-3.5">
+          <p className="font-display text-xl font-medium tracking-tight">
+            NutriPlan<span className="ml-1 align-super font-sans text-[10px] font-semibold tracking-wider text-primary">PY</span>
+          </p>
+          <ThemeToggle />
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-md flex-1 space-y-5 px-4 py-5 pb-16">
-        <div className="space-y-4 rounded-3xl bg-gradient-to-tr from-emerald-800 to-teal-900 p-5 text-white shadow-lg">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-medium text-emerald-200">Plan personalizado</p>
-              <h1 className="mt-0.5 text-xl font-bold tracking-tight">
-                ¡Hola, {firstName(client.fullName)}!
-              </h1>
-            </div>
-            <div className="rounded-xl border border-white/10 bg-white/10 px-2.5 py-1 text-xs font-semibold">
-              {client.targetCalories} kcal
-            </div>
-          </div>
+      <main className="mx-auto w-full max-w-lg flex-1 px-5 pb-20 pt-10">
+        <section>
+          <h1 className="text-[40px] font-medium leading-[1.1]">Hola, {firstName(client.fullName)}</h1>
+          <p className="mt-3 text-[15px] text-muted">
+            Tu plan de hoy: <span className="font-medium text-foreground tabular-nums">{client.targetCalories.toLocaleString('es-PY')} kcal</span>
+          </p>
+          <p className="mt-1 text-sm tabular-nums text-muted">
+            {client.targetMacros.carbohydrates} g carbohidratos · {client.targetMacros.proteins} g proteínas ·{' '}
+            {client.targetMacros.lipids} g lípidos
+          </p>
 
-          <div className="grid grid-cols-3 gap-2 text-center text-xs">
-            {[
-              ['Carbohidratos', client.targetMacros.carbohydrates],
-              ['Proteínas', client.targetMacros.proteins],
-              ['Lípidos', client.targetMacros.lipids],
-            ].map(([label, grams]) => (
-              <div key={label} className="rounded-xl bg-white/10 p-2">
-                <span className="block text-xs text-emerald-200">{label}</span>
-                <strong className="text-sm font-bold">{grams}g</strong>
-              </div>
-            ))}
-          </div>
-
-          <div className="space-y-1.5 pt-1">
-            <div className="flex items-center justify-between text-xs font-semibold text-emerald-100">
-              <span>Adherencia de hoy</span>
-              <span>
-                {completedMealsCount} de {totalMealsCount} comidas ({adherencePercent}%)
+          <div className="mt-6">
+            <div className="flex items-baseline justify-between text-sm">
+              <span className="text-foreground">Comidas de hoy</span>
+              <span className="tabular-nums text-muted">
+                {completedMealsCount} de {totalMealsCount}
               </span>
             </div>
             <div
-              className="h-2 w-full overflow-hidden rounded-full bg-white/20"
+              className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-muted"
               role="progressbar"
-              aria-label="Adherencia de hoy"
+              aria-label="Comidas completadas hoy"
               aria-valuenow={adherencePercent}
               aria-valuemin={0}
               aria-valuemax={100}
             >
-              <div className="h-full rounded-full bg-white transition-all duration-300" style={{ width: `${adherencePercent}%` }} />
+              <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${adherencePercent}%` }} />
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="space-y-0.5 rounded-2xl bg-primary-soft p-3 text-center">
-          <p className="text-xs font-bold uppercase italic text-primary-soft-foreground">
-            &quot;Un hábito que fue aprendido puede ser reeducado&quot;
-          </p>
-          <p className="text-xs text-primary-soft-foreground/80">
-            Toca el botón «Cambiar» en cualquier alimento para elegir un equivalente.
-          </p>
-        </div>
-
-        <div className="space-y-4">
+        <div className="mt-10 space-y-10">
           {patientMeals.map((meal) => (
-            <Card
-              key={meal.id}
-              className={cn('overflow-hidden transition-colors', meal.isCompleted && 'border-primary/60 ring-1 ring-primary/30')}
-            >
-              <div className="flex items-center justify-between border-b border-border bg-surface-muted/50 px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold">{meal.name}</h3>
-                  {meal.time && (
-                    <span className="flex items-center gap-1 text-xs text-muted">
-                      <Clock className="h-3 w-3" /> {meal.time}
-                    </span>
-                  )}
+            <section key={meal.id} aria-label={meal.name}>
+              <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+                <div className="flex items-baseline gap-3">
+                  <h2 className="text-[26px] font-medium leading-tight">{meal.name}</h2>
+                  {meal.time && <span className="text-sm tabular-nums text-muted">{meal.time}</span>}
                 </div>
-                <Button
-                  size="sm"
-                  variant={meal.isCompleted ? 'primary' : 'secondary'}
+                <button
+                  type="button"
                   aria-pressed={!!meal.isCompleted}
                   onClick={() => toggleMealCompleted(meal.id)}
+                  className={cn(
+                    'inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors',
+                    meal.isCompleted
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border-strong text-muted hover:bg-surface-muted hover:text-foreground'
+                  )}
                 >
                   {meal.isCompleted ? (
                     <>
-                      <CheckCircle2 className="h-3.5 w-3.5" /> Completada
+                      <CheckCircle2 className="h-4 w-4" /> Hecha
                     </>
                   ) : (
                     <>
-                      <Circle className="h-3.5 w-3.5" /> Marcar lista
+                      <Circle className="h-4 w-4" /> Marcar
                     </>
                   )}
-                </Button>
+                </button>
               </div>
 
-              <div className="space-y-3 p-4">
+              <ul className={cn('divide-y divide-border', meal.isCompleted && 'opacity-60')}>
                 {meal.items.map((item) => {
                   const group = groupsMap.get(item.groupId);
                   if (!group) return null;
@@ -215,37 +179,45 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                     : '';
 
                   return (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface-muted/40 p-3.5"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-1 flex items-center gap-1.5">
-                          <span className={cn('rounded-md border px-2 py-0.5 text-xs font-semibold', group.color.badge)}>
-                            {group.shortName}
-                          </span>
-                          <span className="text-xs font-medium text-muted">{formatFriendlyFraction(item.exchangeCount)} int</span>
-                        </div>
-                        <strong className="block truncate text-sm font-bold">{selectedFood?.name || 'Alimento a elección'}</strong>
-                        <div className="mt-0.5 flex items-baseline gap-2">
-                          <span className="text-sm font-bold text-primary">
+                    <li key={item.id} className="flex items-center justify-between gap-4 py-4">
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-2 text-[13px] text-muted">
+                          <span
+                            className="h-2 w-2 shrink-0 rounded-full"
+                            style={{ backgroundColor: group.color.accent }}
+                            aria-hidden="true"
+                          />
+                          {group.shortName} · {formatFriendlyFraction(item.exchangeCount)} int
+                        </p>
+                        <p className="mt-1 text-lg font-medium leading-snug">{selectedFood?.name || 'Alimento a elección'}</p>
+                        <p className="mt-0.5 text-[15px] text-primary">
+                          <span className="font-medium">
                             {friendlyHouseholdQty} {selectedFood?.householdUnit}
                           </span>
-                          <span className="font-mono text-xs text-muted">({calculatedGrams} g)</span>
-                        </div>
+                          <span className="ml-1.5 tabular-nums text-muted">({calculatedGrams} g)</span>
+                        </p>
                       </div>
 
-                      <Button onClick={() => handleOpenChange(meal.id, item)} className="shrink-0 active:scale-95">
-                        <ArrowLeftRight className="h-3.5 w-3.5 text-primary" />
+                      <button
+                        type="button"
+                        onClick={() => handleOpenChange(meal.id, item)}
+                        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border border-border-strong px-3.5 text-sm font-medium transition-colors hover:bg-surface-muted active:scale-95"
+                      >
+                        <ArrowLeftRight className="h-4 w-4 text-muted" />
                         Cambiar
-                      </Button>
-                    </div>
+                      </button>
+                    </li>
                   );
                 })}
-              </div>
-            </Card>
+              </ul>
+            </section>
           ))}
         </div>
+
+        <p className="mt-14 text-center font-display text-xl font-medium italic leading-snug text-muted">
+          Un hábito que fue aprendido puede ser reeducado.
+        </p>
+        <p className="mt-2 text-center text-[13px] text-subtle">Lic. Laura Molinas · Reg. Prof. 6020</p>
       </main>
 
       <Modal
@@ -257,23 +229,23 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
       >
         <div className="space-y-3">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
             <input
               type="search"
               aria-label="Buscar equivalente"
-              placeholder="Buscar mandioca, chipa, locote, frutas..."
+              placeholder="Buscar mandioca, chipa, locote, frutas…"
               value={modalSearch}
               onChange={(e) => setModalSearch(e.target.value)}
-              className="h-10 w-full rounded-xl border border-border bg-surface pl-9 pr-3 text-sm text-foreground placeholder:text-subtle focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+              className="h-11 w-full rounded-lg border border-border-strong bg-surface pl-10 pr-3 text-[15px] text-foreground placeholder:text-subtle focus:border-ring focus:outline-none focus:ring-[3px] focus:ring-ring/20"
             />
           </div>
 
           {allowedEquivalents.length === 0 ? (
-            <p className="py-10 text-center text-xs text-muted">
+            <p className="py-10 text-center text-sm text-muted">
               No hay alimentos permitidos que coincidan con la búsqueda.
             </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="divide-y divide-border">
               {allowedEquivalents.map((eq) => {
                 const isCurrent = eq.food.id === changeModal.currentFoodId;
                 return (
@@ -282,21 +254,18 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                       type="button"
                       onClick={() => handleSelectFood(eq.food.id)}
                       className={cn(
-                        'flex w-full items-center justify-between gap-3 rounded-2xl border p-3 text-left transition-colors',
-                        isCurrent ? 'border-primary bg-primary-soft' : 'border-border hover:border-primary/50 hover:bg-surface-muted'
+                        '-mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded-lg px-2 py-3 text-left transition-colors hover:bg-surface-muted',
+                        isCurrent && 'bg-primary-soft hover:bg-primary-soft'
                       )}
                     >
                       <span className="min-w-0">
-                        <span className="flex items-center gap-1.5">
-                          <strong className="truncate text-sm font-semibold">{eq.food.name}</strong>
-                          {eq.food.state !== 'no_aplica' && <Badge className="uppercase">{eq.food.state}</Badge>}
-                        </span>
-                        <span className="mt-0.5 block text-sm font-bold text-primary">{eq.formattedHousehold}</span>
+                        <span className="block truncate text-[15px] font-medium">{eq.food.name}</span>
+                        <span className="block text-sm text-primary">{eq.formattedHousehold}</span>
                       </span>
                       {isCurrent ? (
-                        <Badge tone="primary" className="shrink-0">Actual ✓</Badge>
+                        <span className="shrink-0 text-[13px] font-medium text-primary">Actual</span>
                       ) : (
-                        <span className="shrink-0 text-xs font-semibold text-primary">Elegir</span>
+                        <span className="shrink-0 text-[13px] text-muted">Elegir</span>
                       )}
                     </button>
                   </li>
@@ -322,17 +291,14 @@ export function PatientPortal({ client, plan }: { client: Client; plan: MealPlan
 /** Enlace inexistente, vencido o revocado (no se distingue a propósito). */
 export function PortalUnavailable() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md space-y-4 p-6 text-center shadow-xl sm:p-8">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-danger-soft text-danger-soft-foreground">
-          <ShieldAlert className="h-8 w-8" />
-        </div>
-        <h1 className="text-xl font-bold text-foreground">Enlace inactivo o revocado</h1>
-        <p className="text-sm leading-relaxed text-muted">
-          El enlace de acceso para este plan nutricional ha expirado o fue revocado por tu nutricionista. Por favor
-          solicita uno nuevo a la Lic. Laura Molinas (Reg. Prof. 6020).
+    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="max-w-sm text-center">
+        <ShieldAlert className="mx-auto h-7 w-7 text-subtle" strokeWidth={1.5} />
+        <h1 className="mt-4 text-3xl font-medium text-foreground">Este enlace ya no está disponible</h1>
+        <p className="mt-3 text-[15px] leading-relaxed text-muted">
+          Venció o fue revocado por tu nutricionista. Pídele uno nuevo a la Lic. Laura Molinas (Reg. Prof. 6020).
         </p>
-      </Card>
+      </div>
     </div>
   );
 }

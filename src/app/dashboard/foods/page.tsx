@@ -4,11 +4,10 @@ import React, { useMemo, useState } from 'react';
 import { MOCK_EXCHANGE_GROUPS, MOCK_SUBGROUPS, MOCK_FOODS } from '@/lib/mock-data';
 import { Food, FoodState } from '@/types/nutrition';
 import { normalizeText } from '@/core/exchange-engine';
-import { FoodCard } from '@/components/foods/FoodCard';
 import { FoodCalculatorModal } from '@/components/foods/FoodCalculatorModal';
-import { Button, Card, Select, Tabs, useToast } from '@/components/ui';
+import { Button, Card, PageHeader, Select, Tabs, useToast } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { Search, Calculator, Award, SearchX } from 'lucide-react';
+import { Search, Calculator, SearchX } from 'lucide-react';
 
 type StateFilter = 'all' | FoodState;
 
@@ -48,150 +47,193 @@ export default function FoodsCatalogPage() {
     });
   }, [foodsList, selectedGroupId, selectedSubgroupId, selectedState, onlyParaguayMarked, searchQuery]);
 
-  const selectGroup = (id: string) => {
-    setSelectedGroupId(id);
-    setSelectedSubgroupId('all');
-  };
+  const hasFilters =
+    searchQuery !== '' || selectedGroupId !== 'all' || selectedState !== 'all' || onlyParaguayMarked;
 
   const clearFilters = () => {
     setSearchQuery('');
-    selectGroup('all');
+    setSelectedGroupId('all');
+    setSelectedSubgroupId('all');
     setSelectedState('all');
     setOnlyParaguayMarked(false);
   };
 
-  const chip = (active: boolean) =>
-    cn(
-      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
-      active
-        ? 'bg-accent text-accent-foreground'
-        : 'border border-border bg-surface text-muted hover:bg-surface-muted hover:text-foreground'
-    );
-
   return (
-    <div className="space-y-6 pb-12">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">Catálogo oficial PY</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Alimentos y equivalencias
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted">
-            Porciones base de 1 intercambio con sinónimos de Paraguay, marcas comerciales y calculadora por 100 g.
-          </p>
-        </div>
-        <Button variant="primary" onClick={() => setIsCalculatorOpen(true)} className="shrink-0">
-          <Calculator className="h-4 w-4" />
-          Nuevo alimento
-        </Button>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Catálogo"
+        title="Alimentos y equivalencias"
+        description="Porción de 1 intercambio con sinónimos de Paraguay y marcas comerciales."
+        actions={
+          <Button variant="primary" onClick={() => setIsCalculatorOpen(true)}>
+            <Calculator className="h-4 w-4" />
+            Nuevo alimento
+          </Button>
+        }
+      />
 
-      <Card className="space-y-4 p-4 sm:p-5">
+      <div className="space-y-4">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-subtle" />
           <input
             type="search"
-            placeholder="Buscar alimento, marca o sinónimo (mandioca, locote, pororó, La Palmera...)"
+            placeholder="Buscar por alimento, marca o sinónimo: mandioca, locote, pororó…"
             aria-label="Buscar alimentos"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-11 w-full rounded-xl border border-border bg-surface pl-10 pr-4 text-sm text-foreground placeholder:text-subtle focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30"
+            className="h-12 w-full rounded-lg border border-border-strong bg-surface pl-11 pr-4 text-base text-foreground placeholder:text-subtle focus:border-ring focus:outline-none focus:ring-[3px] focus:ring-ring/20"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          <button type="button" onClick={() => selectGroup('all')} className={chip(selectedGroupId === 'all')}>
-            Todos
-            <span className="opacity-70">{foodsList.length}</span>
-          </button>
-          {MOCK_EXCHANGE_GROUPS.map((group) => (
-            <button
-              key={group.id}
-              type="button"
-              onClick={() => selectGroup(group.id)}
-              className={chip(selectedGroupId === group.id)}
-            >
-              {group.shortName}
-              <span className="opacity-70">{foodsList.filter((f) => f.groupId === group.id).length}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-          <div className="flex flex-wrap items-center gap-3">
-            {availableSubgroups.length > 0 && (
-              <Select
-                aria-label="Subgrupo"
-                value={selectedSubgroupId}
-                onChange={(e) => setSelectedSubgroupId(e.target.value)}
-                className="h-9 w-auto text-xs"
-              >
-                <option value="all">Todos los subgrupos</option>
-                {availableSubgroups.map((sub) => (
-                  <option key={sub.id} value={sub.id}>
-                    {sub.name}
-                  </option>
-                ))}
-              </Select>
-            )}
-            <Tabs
-              value={selectedState}
-              onChange={setSelectedState}
-              options={[
-                { value: 'all', label: 'Todos' },
-                { value: 'crudo', label: 'Crudo' },
-                { value: 'cocido', label: 'Cocido' },
-              ]}
-            />
-          </div>
-
-          <button
-            type="button"
-            aria-pressed={onlyParaguayMarked}
-            onClick={() => setOnlyParaguayMarked((v) => !v)}
-            className={cn(
-              'inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-semibold transition-colors',
-              onlyParaguayMarked
-                ? 'bg-warning text-white'
-                : 'bg-warning-soft text-warning-soft-foreground hover:opacity-80'
-            )}
+        <div className="flex flex-wrap items-center gap-3">
+          <Select
+            aria-label="Grupo de intercambio"
+            value={selectedGroupId}
+            onChange={(e) => {
+              setSelectedGroupId(e.target.value);
+              setSelectedSubgroupId('all');
+            }}
+            className="h-9 w-auto text-sm"
           >
-            <Award className="h-3.5 w-3.5" />
-            Sello comercial Paraguay (*)
-          </button>
-        </div>
-      </Card>
+            <option value="all">Todos los grupos</option>
+            {MOCK_EXCHANGE_GROUPS.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </Select>
 
-      <p className="text-xs text-muted" aria-live="polite">
+          {availableSubgroups.length > 0 && selectedGroupId !== 'all' && (
+            <Select
+              aria-label="Subgrupo"
+              value={selectedSubgroupId}
+              onChange={(e) => setSelectedSubgroupId(e.target.value)}
+              className="h-9 w-auto text-sm"
+            >
+              <option value="all">Todos los subgrupos</option>
+              {availableSubgroups.map((sub) => (
+                <option key={sub.id} value={sub.id}>
+                  {sub.name}
+                </option>
+              ))}
+            </Select>
+          )}
+
+          <Tabs
+            value={selectedState}
+            onChange={setSelectedState}
+            options={[
+              { value: 'all', label: 'Todos' },
+              { value: 'crudo', label: 'Crudo' },
+              { value: 'cocido', label: 'Cocido' },
+            ]}
+          />
+
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-foreground">
+            <input
+              type="checkbox"
+              checked={onlyParaguayMarked}
+              onChange={(e) => setOnlyParaguayMarked(e.target.checked)}
+              className="h-4 w-4 accent-[var(--primary)]"
+            />
+            Solo con sello Paraguay (*)
+          </label>
+
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-sm text-muted underline-offset-4 hover:text-foreground hover:underline"
+            >
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+      </div>
+
+      <p className="text-sm text-muted" aria-live="polite">
         {filteredFoods.length} {filteredFoods.length === 1 ? 'alimento' : 'alimentos'}
       </p>
 
       {filteredFoods.length === 0 ? (
-        <Card className="flex flex-col items-center gap-3 px-6 py-14 text-center">
-          <SearchX className="h-8 w-8 text-subtle" />
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border-strong px-6 py-16 text-center">
+          <SearchX className="h-7 w-7 text-subtle" strokeWidth={1.5} />
           <div>
-            <p className="font-semibold text-foreground">Sin resultados</p>
-            <p className="text-sm text-muted">Prueba con otro término o quita algunos filtros.</p>
+            <p className="font-display text-xl font-medium text-foreground">Sin resultados</p>
+            <p className="mt-1 text-[15px] text-muted">Prueba con otro término o quita algunos filtros.</p>
           </div>
           <Button size="sm" onClick={clearFilters}>
             Limpiar filtros
           </Button>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredFoods.map((food) => {
-            const group = groupsMap.get(food.groupId);
-            if (!group) return null;
-            return (
-              <FoodCard
-                key={food.id}
-                food={food}
-                group={group}
-                subgroup={food.subgroupId ? subgroupsMap.get(food.subgroupId) : null}
-              />
-            );
-          })}
         </div>
+      ) : (
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] text-left">
+              <thead>
+                <tr className="border-b border-border text-[13px] text-muted">
+                  <th scope="col" className="px-5 py-3 font-medium">Alimento</th>
+                  <th scope="col" className="px-3 py-3 font-medium">Grupo</th>
+                  <th scope="col" className="px-3 py-3 font-medium">Porción de 1 intercambio</th>
+                  <th scope="col" className="px-5 py-3 text-right font-medium">Gramos</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredFoods.map((food) => {
+                  const group = groupsMap.get(food.groupId);
+                  if (!group) return null;
+                  const subgroup = food.subgroupId ? subgroupsMap.get(food.subgroupId) : null;
+                  const secondary = [
+                    food.brand ? `Marca ${food.brand}` : null,
+                    food.state !== 'no_aplica' ? food.state : null,
+                    subgroup?.name ?? null,
+                  ].filter(Boolean);
+
+                  return (
+                    <tr key={food.id} className="align-top transition-colors hover:bg-surface-muted/50">
+                      <td className="px-5 py-3.5">
+                        <p className="text-[15px] font-medium text-foreground">
+                          {food.name}
+                          {food.isParaguayanMarked && (
+                            <span
+                              className="ml-2 align-middle text-xs font-medium text-warning"
+                              title="Sello comercial Paraguay"
+                            >
+                              PY*
+                            </span>
+                          )}
+                        </p>
+                        {secondary.length > 0 && (
+                          <p className="mt-0.5 text-[13px] text-muted first-letter:uppercase">{secondary.join(' · ')}</p>
+                        )}
+                        {food.aliases.length > 0 && (
+                          <p className="mt-0.5 text-[13px] text-subtle">También: {food.aliases.join(', ')}</p>
+                        )}
+                      </td>
+                      <td className="px-3 py-3.5">
+                        <span className="inline-flex items-center gap-2 text-sm text-foreground">
+                          <span
+                            className={cn('h-2 w-2 shrink-0 rounded-full')}
+                            style={{ backgroundColor: group.color.accent }}
+                            aria-hidden="true"
+                          />
+                          {group.shortName}
+                        </span>
+                        <p className="mt-0.5 pl-4 text-[13px] tabular-nums text-muted">
+                          {group.referenceMacros.calories} kcal
+                        </p>
+                      </td>
+                      <td className="px-3 py-3.5 text-[15px] text-foreground">{food.portionDescription}</td>
+                      <td className="px-5 py-3.5 text-right text-[15px] tabular-nums text-foreground">
+                        {food.baseGrams} g
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
 
       <FoodCalculatorModal

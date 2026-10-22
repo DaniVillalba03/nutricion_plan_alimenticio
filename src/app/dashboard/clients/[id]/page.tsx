@@ -103,10 +103,8 @@ export default function PatientProgressPage() {
         return;
       }
       const saved = res.measurement;
-      // Un control del mismo día reemplaza al anterior
-      const next = [...list.filter((m) => m.measuredOn !== saved.measuredOn), saved].sort((a, b) =>
-        a.measuredOn.localeCompare(b.measuredOn)
-      );
+      // Por fecha; con la misma fecha, el recién registrado va después (el orden es estable)
+      const next = [...list, saved].sort((a, b) => a.measuredOn.localeCompare(b.measuredOn));
       setMeasurements(next);
       syncClientWeight(next);
       setFormOpen(false);
@@ -264,7 +262,6 @@ export default function PatientProgressPage() {
         open={formOpen}
         onClose={() => !saving && setFormOpen(false)}
         title="Registrar control"
-        description="Si ya hay un control en esa fecha, se corrige con estos datos."
         size="sm"
         footer={
           <>

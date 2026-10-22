@@ -42,7 +42,8 @@ export async function getMeasurementsAction(
       .from('client_measurements')
       .select('id, measured_on, weight_kg, body_fat_pct, waist_cm, notes')
       .eq('client_id', clientId)
-      .order('measured_on', { ascending: true });
+      .order('measured_on', { ascending: true })
+      .order('created_at', { ascending: true });
     if (error) return { success: false, measurements: [], error: error.message };
     return { success: true, measurements: (data ?? []).map((r) => mapMeasurement(r as DbMeasurement)) };
   } catch (err: unknown) {
@@ -51,8 +52,8 @@ export async function getMeasurementsAction(
 }
 
 /**
- * Registra un control (o corrige el del mismo día). La base deja el peso de la ficha igual al del
- * control más reciente.
+ * Registra un control (se pueden registrar varios el mismo día). La base deja el peso de la ficha
+ * igual al del control más reciente.
  */
 export async function addMeasurementAction(
   clientId: string,

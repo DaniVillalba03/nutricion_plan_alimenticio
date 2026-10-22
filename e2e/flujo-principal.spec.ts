@@ -112,3 +112,31 @@ test.describe('seguimiento del paciente', () => {
     await expect(page.getByRole('cell', { name: '64,5 kg' })).toHaveCount(0);
   });
 });
+
+test.describe('seguimiento: varios controles el mismo día', () => {
+  test('cada control se conserva y todos se grafican', async ({ page }) => {
+    await page.goto('/login');
+    await page.getByLabel('Correo electrónico').fill('lic@example.com');
+    await page.getByLabel('Contraseña').fill('cualquier-clave');
+    await page.getByRole('button', { name: /Ingresar/ }).click();
+    await expect(page).toHaveURL(/\/dashboard/);
+    await page.getByRole('link', { name: 'Pacientes' }).first().click();
+    await page.getByRole('link', { name: /Ver el progreso de Ing\. Carlos/ }).click();
+    await expect(page.getByRole('heading', { name: 'Ing. Carlos Villalba' })).toBeVisible();
+
+    for (const peso of ['82', '81.4', '80.9']) {
+      await page.getByRole('button', { name: 'Registrar control' }).click();
+      const dialogo = page.getByRole('dialog', { name: 'Registrar control' });
+      await dialogo.getByLabel('Fecha').fill('2026-10-10');
+      await dialogo.getByLabel('Peso (kg)').fill(peso);
+      await dialogo.getByRole('button', { name: 'Guardar control' }).click();
+      await expect(dialogo).toBeHidden();
+    }
+
+    // Los tres siguen en la tabla (ninguno reemplazó a otro) y el gráfico los dibuja
+    await expect(page.getByRole('cell', { name: '82 kg' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '81,4 kg' })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '80,9 kg' })).toBeVisible();
+    await expect(page.getByRole('img', { name: /Peso de .* de 82 a 80,9 kg/ })).toBeVisible();
+  });
+});

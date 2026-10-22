@@ -89,6 +89,18 @@ describe('weightChartPoints', () => {
     expect(points[1].y).toBeLessThanOrEqual(45);
   });
 
+  it('varios controles el mismo día no se encimen: se reparten en orden', () => {
+    const { points } = weightChartPoints(
+      [m('2026-10-01', 80), { ...m('2026-10-01', 79), id: 'b' }, { ...m('2026-10-01', 78), id: 'c' }, m('2026-10-05', 77)],
+      size
+    );
+    const xs = points.map((p) => p.x);
+    expect(new Set(xs).size).toBe(4);
+    expect([...xs].sort((a, b) => a - b)).toEqual(xs); // crecen en el orden registrado
+    expect(points[0].value).toBe(80);
+    expect(points[2].value).toBe(78);
+  });
+
   it('un solo control queda centrado y varios iguales no dividen por cero', () => {
     expect(weightChartPoints([m('2026-10-01', 80)], size).points[0].x).toBe(50);
     const flat = weightChartPoints([m('2026-10-01', 80), m('2026-10-02', 80)], size).points;

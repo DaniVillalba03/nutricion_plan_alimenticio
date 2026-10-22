@@ -69,7 +69,7 @@ export interface WeightStats {
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
-/** Estadísticas de peso a partir de los controles (en cualquier orden). */
+/** Estadísticas de peso a partir de los controles (ordenados por fecha; con la misma fecha, vale el orden recibido). */
 export function weightStats(measurements: Measurement[], heightCm?: number): WeightStats | null {
   if (measurements.length === 0) return null;
   const sorted = [...measurements].sort((a, b) => a.measuredOn.localeCompare(b.measuredOn));
@@ -112,7 +112,16 @@ export function weightChartPoints(
   const min = lo - margin;
   const max = hi + margin;
 
-  const t = sorted.map((m) => Date.parse(`${m.measuredOn}T00:00:00Z`));
+  // Varios controles el mismo día se reparten dentro de ese día (en el orden en que se registraron)
+  const DAY = 86_400_000;
+  const perDay = new Map<string, number>();
+  for (const m of sorted) perDay.set(m.measuredOn, (perDay.get(m.measuredOn) ?? 0) + 1);
+  const seen = new Map<string, number>();
+  const t = sorted.map((m) => {
+    const k = seen.get(m.measuredOn) ?? 0;
+    seen.set(m.measuredOn, k + 1);
+    return Date.parse(`${m.measuredOn}T00:00:00Z`) + (k / perDay.get(m.measuredOn)!) * DAY * 0.9;
+  });
   const t0 = t[0];
   const span = t[t.length - 1] - t0;
   const innerW = size.width - size.padX * 2;

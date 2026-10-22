@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { MOCK_EXCHANGE_GROUPS, MOCK_FOODS } from '@/lib/mock-data';
 import { Client, Food, MealPlan, MealPlanMeal, MealPlanItem, ExchangeGroup } from '@/types/nutrition';
 import { formatFriendlyFraction, getFoodEquivalents } from '@/core/exchange-engine';
-import { applyProgress, dayKey, parseProgress, toProgress } from '@/core/portal-progress';
+import { applyProgress, type PortalProgress } from '@/core/portal-progress';
+import { setPortalFoodAction, setPortalMealAction } from '@/actions/nutrition-actions';
 import { ArrowLeftRight, CheckCircle2, Circle, Search, ShieldAlert, Utensils } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { Brand } from '@/components/layout/Brand';
@@ -26,37 +27,27 @@ function firstName(fullName: string): string {
   return withoutTitle.split(/\s+/)[0] || fullName;
 }
 
-function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan }) {
+interface PortalProps {
+  client: Client;
+  plan: MealPlan;
+  /** Token del enlace: identifica el plan al guardar el avance en la base de datos. */
+  token: string;
+  /** Día de hoy en Paraguay (AAAA-MM-DD), calculado en el servidor. */
+  today: string;
+  /** Avance ya guardado (comidas completadas hoy y alimentos elegidos). */
+  initialProgress: PortalProgress;
+}
+
+function PatientPortalContent({ client, plan, token, today, initialProgress }: PortalProps) {
   const { toast } = useToast();
 
+  // El avance vive en la base de datos: llega con la página y cada cambio se guarda en el servidor
   const [patientMeals, setPatientMeals] = useState<MealPlanMeal[]>(() =>
-    plan.meals.map((m) => ({ ...m, isCompleted: false }))
+    applyProgress(
+      plan.meals.map((m) => ({ ...m, isCompleted: false })),
+      initialProgress
+    )
   );
-
-  // El avance se guarda en este dispositivo (el portal es anónimo): se recupera al abrir y se
-  // vuelve a guardar en cada cambio. Hasta recuperarlo no se escribe, para no pisar lo guardado.
-  const storageKey = `nutriplan-portal:${plan.id}`;
-  const [progressLoaded, setProgressLoaded] = useState(false);
-
-  useEffect(() => {
-    try {
-      const saved = parseProgress(window.localStorage.getItem(storageKey), dayKey(new Date()));
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage solo existe en el navegador
-      setPatientMeals(applyProgress(plan.meals.map((m) => ({ ...m, isCompleted: false })), saved));
-    } catch {
-      // Almacenamiento bloqueado (modo privado): el portal funciona igual, sin recordar el avance
-    }
-    setProgressLoaded(true);
-  }, [plan.meals, storageKey]);
-
-  useEffect(() => {
-    if (!progressLoaded) return;
-    try {
-      window.localStorage.setItem(storageKey, JSON.stringify(toProgress(plan.meals, patientMeals, dayKey(new Date()))));
-    } catch {
-      // Sin almacenamiento: no se recuerda el avance
-    }
-  }, [patientMeals, progressLoaded, plan.meals, storageKey]);
 
   const [changeModal, setChangeModal] = useState<ChangeModalState>({
     isOpen: false,
@@ -74,11 +65,25 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
   const completedMealsCount = patientMeals.filter((m) => m.isCompleted).length;
   const adherencePercent = Math.round((completedMealsCount / (totalMealsCount || 1)) * 100);
 
-  const toggleMealCompleted = (mealId: string) => {
-    const meal = patientMeals.find((m) => m.id === mealId);
+  const setMealCompleted = (mealId: string, completed: boolean) =>
+    setPatientMeals((prev) => prev.map((m) => (m.id === mealId ? { ...m, isCompleted: completed } : m)));
+
+  const toggleMealCompleted = async (mealId: string) => {
+    const mealIndex = patientMeals.findIndex((m) => m.id === mealId);
+    const meal = patientMeals[mealIndex];
     if (!meal) return;
-    if (!meal.isCompleted) toast(`¡Excelente! Marcaste "${meal.name}" como completada.`);
-    setPatientMeals((prev) => prev.map((m) => (m.id === mealId ? { ...m, isCompleted: !m.isCompleted } : m)));
+
+    // Se refleja al instante y se confirma con el servidor; si falla, se deshace y se avisa
+    const next = !meal.isCompleted;
+    setMealCompleted(mealId, next);
+    if (next) toast(`¡Excelente! Marcaste "${meal.name}" como completada.`);
+    try {
+      const res = await setPortalMealAction(token, today, mealIndex, next);
+      if (!res.success) throw new Error(res.error);
+    } catch (err) {
+      setMealCompleted(mealId, !next);
+      toast(err instanceof Error && err.message ? err.message : 'No se pudo guardar. Intenta de nuevo.', 4000);
+    }
   };
 
   const handleOpenChange = (mealId: string, item: MealPlanItem) => {
@@ -95,21 +100,32 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
 
   const closeChange = () => setChangeModal((prev) => ({ ...prev, isOpen: false }));
 
-  const handleSelectFood = (foodId: string) => {
-    setPatientMeals((prev) =>
-      prev.map((meal) =>
-        meal.id !== changeModal.mealId
-          ? meal
-          : {
-              ...meal,
-              items: meal.items.map((item) =>
-                item.id !== changeModal.itemId ? item : { ...item, selectedFoodId: foodId }
-              ),
-            }
-      )
-    );
+  const handleSelectFood = async (foodId: string) => {
+    const mealIndex = patientMeals.findIndex((m) => m.id === changeModal.mealId);
+    const itemIndex = patientMeals[mealIndex]?.items.findIndex((i) => i.id === changeModal.itemId) ?? -1;
+    const previousFoodId = patientMeals[mealIndex]?.items[itemIndex]?.selectedFoodId;
+
+    const applyFood = (id: string | undefined) =>
+      setPatientMeals((prev) =>
+        prev.map((meal) =>
+          meal.id !== changeModal.mealId
+            ? meal
+            : { ...meal, items: meal.items.map((item) => (item.id !== changeModal.itemId ? item : { ...item, selectedFoodId: id })) }
+        )
+      );
+
+    applyFood(foodId);
     closeChange();
     toast(`Cambiaste tu porción por: "${foodsMap.get(foodId)?.name || 'Alimento'}"`, 3500);
+
+    if (mealIndex < 0 || itemIndex < 0) return;
+    try {
+      const res = await setPortalFoodAction(token, mealIndex, itemIndex, foodId);
+      if (!res.success) throw new Error(res.error);
+    } catch (err) {
+      applyFood(previousFoodId);
+      toast(err instanceof Error && err.message ? err.message : 'No se pudo guardar el cambio.', 4000);
+    }
   };
 
   // Equivalentes permitidos: se ocultan los excluidos por las restricciones del paciente
@@ -357,10 +373,10 @@ function GoalCell({ label, value, unit, dot }: { label: string; value: string; u
 }
 
 /** Portal del paciente: recibe el plan ya validado por el servidor. */
-export function PatientPortal({ client, plan }: { client: Client; plan: MealPlan }) {
+export function PatientPortal(props: PortalProps) {
   return (
     <ToastProvider>
-      <PatientPortalContent client={client} plan={plan} />
+      <PatientPortalContent {...props} />
     </ToastProvider>
   );
 }

@@ -13,7 +13,7 @@ import { cloneDeep, newId } from '@/lib/utils';
 import { MEAL_TYPES } from '@/core/plan-operations';
 import { emptyPlanFor } from '@/core/stored-plan';
 import { isDemoAccessEnabled } from '@/lib/supabase/client';
-import { savePlanAction, updateShareSettingsAction } from '@/actions/nutrition-actions';
+import { getPlanAdherenceAction, savePlanAction, updateShareSettingsAction } from '@/actions/nutrition-actions';
 import { usePatients } from '@/components/patients/PatientsProvider';
 import { PatientSwitcher } from '@/components/patients/PatientSwitcher';
 import { NewPatientModal } from '@/components/patients/NewPatientModal';
@@ -114,6 +114,22 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
   useEffect(() => {
     planRef.current = plan;
   });
+
+  // Lo que el paciente completó hoy desde su portal (lo lee la base de datos, no el dispositivo)
+  const [adherence, setAdherence] = useState<{ completed: number; total: number } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    getPlanAdherenceAction(plan.id)
+      .then((res) => {
+        if (!cancelled) setAdherence(res.adherence ?? null);
+      })
+      .catch(() => {
+        // Sin conexión: simplemente no se muestra
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [plan.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -458,6 +474,14 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
           >
             Ver historial
           </button>
+          {adherence && adherence.total > 0 && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>
+                Hoy el paciente completó {adherence.completed} de {adherence.total} comidas
+              </span>
+            </>
+          )}
         </p>
       </header>
 

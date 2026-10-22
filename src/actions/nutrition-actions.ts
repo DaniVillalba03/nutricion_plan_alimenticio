@@ -18,6 +18,7 @@ import { revalidatePath } from 'next/cache';
 import { randomBytes } from 'node:crypto';
 import { mapSharedPlan } from '@/core/shared-plan';
 import { mapStoredPlan } from '@/core/stored-plan';
+import { EMPTY_PROGRESS, parseProgress, todayInParaguay, type PortalProgress } from '@/core/portal-progress';
 
 /** Token de acceso del portal: 32 bytes aleatorios (43 caracteres URL-safe). */
 function generateShareToken(): string {
@@ -633,6 +634,120 @@ export async function getPatientPlanByTokenAction(token: string): Promise<{
     return { success: true, client: shared.client, plan: shared.plan };
   } catch {
     return { success: false, isRevokedOrExpired: true };
+  }
+}
+
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+const PORTAL_SAVE_ERROR = 'No se pudo guardar. Es posible que el enlace haya vencido.';
+
+/** Solo hay base de datos para tokens reales: los de demostración no persisten nada. */
+function isPersistablePortalToken(token: unknown): token is string {
+  return isSupabaseConfigured() && typeof token === 'string' && token.length >= 32 && token.length <= 100;
+}
+
+/** Avance guardado del paciente para el día indicado (comidas completadas y alimentos elegidos). */
+export async function getPortalProgressAction(token: string, day: string): Promise<PortalProgress> {
+  if (!isPersistablePortalToken(token) || !DAY_RE.test(day)) return EMPTY_PROGRESS;
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('get_portal_progress', { p_token: token, p_day: day });
+    if (error || !data) return EMPTY_PROGRESS;
+    return parseProgress(data);
+  } catch {
+    return EMPTY_PROGRESS;
+  }
+}
+
+/** Marca o desmarca una comida como completada. La escribe la base, no el dispositivo. */
+export async function setPortalMealAction(
+  token: string,
+  day: string,
+  mealIndex: number,
+  completed: boolean
+): Promise<{ success: boolean; error?: string }> {
+  if (!DAY_RE.test(day) || !Number.isInteger(mealIndex) || mealIndex < 0 || typeof completed !== 'boolean') {
+    return { success: false, error: 'Datos no válidos' };
+  }
+  if (!isPersistablePortalToken(token)) return { success: true }; // demostración: sin base de datos
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('set_portal_meal', {
+      p_token: token,
+      p_day: day,
+      p_meal_index: mealIndex,
+      p_completed: completed,
+    });
+    if (error || data !== true) return { success: false, error: PORTAL_SAVE_ERROR };
+    return { success: true };
+  } catch {
+    return { success: false, error: PORTAL_SAVE_ERROR };
+  }
+}
+
+/** Guarda el alimento que el paciente eligió para un ítem (`null` vuelve al del plan). */
+export async function setPortalFoodAction(
+  token: string,
+  mealIndex: number,
+  itemIndex: number,
+  foodId: string | null
+): Promise<{ success: boolean; error?: string }> {
+  if (!Number.isInteger(mealIndex) || !Number.isInteger(itemIndex) || mealIndex < 0 || itemIndex < 0) {
+    return { success: false, error: 'Datos no válidos' };
+  }
+  if (!isPersistablePortalToken(token)) return { success: true };
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc('set_portal_food', {
+      p_token: token,
+      p_meal_index: mealIndex,
+      p_item_index: itemIndex,
+      p_food_id: foodId,
+    });
+    if (error || data !== true) return { success: false, error: PORTAL_SAVE_ERROR };
+    return { success: true };
+  } catch {
+    return { success: false, error: PORTAL_SAVE_ERROR };
+  }
+}
+
+/** Cuánto completó hoy el paciente de su plan compartido, para mostrarlo a la nutricionista (RLS). */
+export async function getPlanAdherenceAction(
+  planId: string
+): Promise<{ success: boolean; adherence?: { completed: number; total: number; lastAt: string | null } }> {
+  if (!UUID_RE.test(planId)) return { success: true };
+  const user = await getAuthenticatedUser();
+  if (user.unauthenticated || user.isDemo) return { success: true };
+
+  try {
+    const supabase = await createClient();
+    const { data: version } = await supabase
+      .from('plan_versions')
+      .select('id')
+      .eq('plan_id', planId)
+      .not('share_token', 'is', null)
+      .order('version_number', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!version) return { success: true };
+
+    const [{ count: total }, { data: rows }] = await Promise.all([
+      supabase.from('plan_meals').select('id', { count: 'exact', head: true }).eq('plan_version_id', version.id),
+      supabase
+        .from('portal_meal_progress')
+        .select('completed_at')
+        .eq('plan_version_id', version.id)
+        .eq('day', todayInParaguay()),
+    ]);
+
+    const times = (rows ?? []).map((r: { completed_at: string }) => r.completed_at).sort();
+    return {
+      success: true,
+      adherence: { completed: rows?.length ?? 0, total: total ?? 0, lastAt: times.length ? times[times.length - 1] : null },
+    };
+  } catch {
+    return { success: true };
   }
 }
 

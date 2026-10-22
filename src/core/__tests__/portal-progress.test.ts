@@ -1,52 +1,47 @@
 import { describe, it, expect } from 'vitest';
 import type { MealPlanMeal } from '@/types/nutrition';
-import { applyProgress, dayKey, emptyProgress, parseProgress, toProgress } from '../portal-progress';
+import { applyProgress, EMPTY_PROGRESS, parseProgress, todayInParaguay } from '../portal-progress';
 
-const meals = (): MealPlanMeal[] => [
-  { id: 'm1', name: 'Desayuno', time: '07:30', items: [{ id: 'i1', groupId: 'cereales', exchangeCount: 1, selectedFoodId: 'avena' }] },
-  { id: 'm2', name: 'Almuerzo', time: '12:30', items: [{ id: 'i2', groupId: 'frutas', exchangeCount: 1 }] },
-] as MealPlanMeal[];
+const meals = (): MealPlanMeal[] =>
+  [
+    { id: 'm1', name: 'Desayuno', time: '07:30', items: [{ id: 'i1', groupId: 'cereales', exchangeCount: 1, selectedFoodId: 'avena' }] },
+    { id: 'm2', name: 'Almuerzo', time: '12:30', items: [{ id: 'i2', groupId: 'frutas', exchangeCount: 1 }] },
+  ] as MealPlanMeal[];
 
 describe('portal-progress', () => {
-  it('dayKey usa la fecha local con ceros', () => {
-    expect(dayKey(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05');
+  it('todayInParaguay usa la fecha de Asunción, no la del servidor', () => {
+    // 01:30 UTC del 5 de enero = 22:30 del día 4 en Paraguay (UTC-3 en verano)
+    expect(todayInParaguay(new Date('2026-01-05T01:30:00Z'))).toBe('2026-01-04');
+    expect(todayInParaguay(new Date('2026-06-05T12:00:00Z'))).toBe('2026-06-05');
   });
 
-  it('guarda y recupera comidas completadas y alimentos elegidos', () => {
-    const original = meals();
-    const current = applyProgress(original, {
-      day: '2026-10-22',
-      completedMealIds: ['m1'],
-      foodByItemId: { i2: 'mamon' },
+  it('interpreta la respuesta de la base', () => {
+    const parsed = parseProgress({
+      completed_meals: [0, 2],
+      food_choices: [{ meal: 1, item: 0, food_id: 'mamon' }],
     });
-    expect(current[0].isCompleted).toBe(true);
-    expect(current[1].items[0].selectedFoodId).toBe('mamon');
-
-    const saved = toProgress(original, current, '2026-10-22');
-    expect(saved).toEqual({ day: '2026-10-22', completedMealIds: ['m1'], foodByItemId: { i2: 'mamon' } });
-
-    const restored = applyProgress(original, parseProgress(JSON.stringify(saved), '2026-10-22'));
-    expect(restored).toEqual(current);
+    expect(parsed).toEqual({ completedMeals: [0, 2], foodChoices: [{ meal: 1, item: 0, foodId: 'mamon' }] });
   });
 
-  it('no guarda como cambio un alimento igual al del plan', () => {
-    const original = meals();
-    expect(toProgress(original, original, '2026-10-22').foodByItemId).toEqual({});
+  it('lo inesperado se descarta sin romper', () => {
+    expect(parseProgress(null)).toEqual(EMPTY_PROGRESS);
+    expect(parseProgress('x')).toEqual(EMPTY_PROGRESS);
+    expect(
+      parseProgress({ completed_meals: [0, -1, 'a', 1.5], food_choices: [{ meal: 0 }, null, { meal: 0, item: 0, food_id: '' }] })
+    ).toEqual({ completedMeals: [0], foodChoices: [] });
   });
 
-  it('las comidas completadas caducan al día siguiente, los alimentos elegidos no', () => {
-    const raw = JSON.stringify({ day: '2026-10-21', completedMealIds: ['m1'], foodByItemId: { i2: 'mamon' } });
-    expect(parseProgress(raw, '2026-10-22')).toEqual({ day: '2026-10-22', completedMealIds: [], foodByItemId: { i2: 'mamon' } });
+  it('aplica comidas completadas y alimentos elegidos por posición', () => {
+    const result = applyProgress(meals(), { completedMeals: [0], foodChoices: [{ meal: 1, item: 0, foodId: 'mamon' }] });
+    expect(result[0].isCompleted).toBe(true);
+    expect(result[1].isCompleted).toBe(false);
+    expect(result[0].items[0].selectedFoodId).toBe('avena');
+    expect(result[1].items[0].selectedFoodId).toBe('mamon');
   });
 
-  it('un valor roto equivale a sin avance', () => {
-    expect(parseProgress('{no es json', '2026-10-22')).toEqual(emptyProgress('2026-10-22'));
-    expect(parseProgress('42', '2026-10-22')).toEqual(emptyProgress('2026-10-22'));
-    expect(parseProgress(null, '2026-10-22')).toEqual(emptyProgress('2026-10-22'));
-  });
-
-  it('ignora ids que ya no existen en el plan', () => {
-    const result = applyProgress(meals(), { day: 'd', completedMealIds: ['borrada'], foodByItemId: { x: 'y' } });
+  it('ignora posiciones que ya no existen en el plan', () => {
+    const result = applyProgress(meals(), { completedMeals: [9], foodChoices: [{ meal: 5, item: 0, foodId: 'x' }] });
     expect(result.every((m) => !m.isCompleted)).toBe(true);
+    expect(result[0].items[0].selectedFoodId).toBe('avena');
   });
 });

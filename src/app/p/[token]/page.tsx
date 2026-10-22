@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { getPatientPlanByTokenAction } from '@/actions/nutrition-actions';
+import { getPatientPlanByTokenAction, getPortalProgressAction } from '@/actions/nutrition-actions';
+import { todayInParaguay } from '@/core/portal-progress';
 import { PatientPortal, PortalUnavailable } from './PatientPortal';
 
 // Página privada: los buscadores no deben indexarla ni seguir enlaces.
@@ -15,7 +16,11 @@ async function PortalLoader({ params }: { params: Promise<{ token: string }> }) 
   const result = await getPatientPlanByTokenAction(token);
 
   if (!result.success || !result.client || !result.plan) return <PortalUnavailable />;
-  return <PatientPortal client={result.client} plan={result.plan} />;
+
+  // El "hoy" del paciente es el de Paraguay; el avance de ese día llega ya con la página
+  const today = todayInParaguay();
+  const initialProgress = await getPortalProgressAction(token, today);
+  return <PatientPortal client={result.client} plan={result.plan} token={token} today={today} initialProgress={initialProgress} />;
 }
 
 export default function PatientPortalPage({ params }: { params: Promise<{ token: string }> }) {

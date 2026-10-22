@@ -36,6 +36,7 @@ Las migraciones están en `supabase/migrations/` y se aplican **en orden** pegá
 
 1. `20261021000001_init_schema.sql`: tablas, índices y políticas RLS.
 2. `20261022000001_secure_portal.sql`: portal por token (`get_shared_plan`, sin lectura pública de tablas).
+3. `20261023000001_portal_progress.sql`: avance diario del paciente (comidas completadas y alimentos elegidos) mediante funciones que validan el token.
 
 Variables de entorno en Vercel (*Settings → Environment Variables*): `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`. No se usa `service_role` en ningún lado.
 

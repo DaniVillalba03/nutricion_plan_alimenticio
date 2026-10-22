@@ -42,3 +42,7 @@ yarn-error.log*
 next-env.d.ts
 # Claude Code: se versiona la configuración compartida; lo personal no
 .claude/settings.local.json
+
+# tokens de acceso locales (nunca al repositorio)
+token.env
+*.env

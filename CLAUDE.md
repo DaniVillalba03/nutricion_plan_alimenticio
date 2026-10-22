@@ -11,7 +11,7 @@ Docs de Next: `node_modules/next/dist/docs/` (más fiables que tu entrenamiento)
 ## Reglas no negociables
 - **Idioma:** todo en español de Paraguay, con tildes y ñ. Commits y mensajes también.
 - **Git:** nunca `git push` sin que la usuaria lo pida en el chat. Flujo: verificar → commit → preguntar → push. Un push a `main` despliega a producción.
-- **Supabase:** no ejecutes SQL ni toques la base. Las migraciones las aplica la usuaria en el SQL Editor; tú solo escribes el archivo en `supabase/migrations/` y se lo dices. Nunca uses ni imprimas `service_role`.
+- **Supabase:** por defecto no toques la base: escribe la migración en `supabase/migrations/` y dile a la usuaria que la aplique. Excepción: si ella lo pide, puedes aplicarla con el token de `token.env` (ignorado por git; solo cuentas de desarrollo) por la Management API, **probando antes en una transacción que se revierte**. Nunca uses ni imprimas `service_role` ni el contenido de `token.env`.
 - **Secretos:** `.env.local` no se lee ni se imprime salvo que la usuaria lo pida; nunca se commitea.
 - **Datos de pacientes son datos de salud:** el portal `/p/[token]` lee solo por `get_shared_plan(token)`; no abras políticas RLS públicas.
 - **Acceso demo** (cookie sin login, datos de ejemplo): solo sin Supabase o con `NEXT_PUBLIC_ENABLE_DEMO_ACCESS=true`. Nunca en producción.

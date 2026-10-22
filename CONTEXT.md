@@ -1,3 +1,5 @@
+> **Histórico:** brief inicial del proyecto. La fuente de verdad es `CLAUDE.md`. Ya no aplica en varios puntos (p. ej. shadcn/ui nunca se usó y Supabase ya está integrado).
+
 # ROL Y OBJETIVO
 Actúa como un Arquitecto de Software Senior y Desarrollador Full-Stack experto en Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui y Supabase. Vamos a construir paso a paso una Webapp de Planes Nutricionales por Intercambios (enfocada en Paraguay).
 

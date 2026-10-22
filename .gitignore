@@ -40,4 +40,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-.claude/
+# Claude Code: se versiona la configuración compartida; lo personal no
+.claude/settings.local.json

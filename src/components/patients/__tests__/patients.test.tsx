@@ -9,12 +9,14 @@ const getClientsAction = vi.fn();
 const createClientAction = vi.fn();
 const getLatestPlanAction = vi.fn();
 const deleteClientAction = vi.fn();
+const updateClientAction = vi.fn();
 
 vi.mock('@/actions/nutrition-actions', () => ({
   getClientsAction: (...args: unknown[]) => getClientsAction(...args),
   createClientAction: (...args: unknown[]) => createClientAction(...args),
   getLatestPlanAction: (...args: unknown[]) => getLatestPlanAction(...args),
   deleteClientAction: (...args: unknown[]) => deleteClientAction(...args),
+  updateClientAction: (...args: unknown[]) => updateClientAction(...args),
 }));
 
 import { PatientsProvider, usePatients } from '../PatientsProvider';
@@ -43,6 +45,7 @@ beforeEach(() => {
   getClientsAction.mockReset().mockResolvedValue({ success: true, data: MOCK_CLIENTS });
   createClientAction.mockReset();
   deleteClientAction.mockReset().mockResolvedValue({ success: true });
+  updateClientAction.mockReset().mockResolvedValue({ success: true });
   getLatestPlanAction.mockReset().mockResolvedValue({ success: true });
 });
 
@@ -74,6 +77,29 @@ describe('PatientsProvider', () => {
     expect(res.ok).toBe(true);
     expect(deleteClientAction).toHaveBeenLastCalledWith(id);
     expect(result.current.clients.some((c) => c.id === id)).toBe(false);
+  });
+
+  it('guarda los cambios de un paciente solo cuando el servidor confirma', async () => {
+    const { result } = renderHook(() => usePatients(), { wrapper });
+    await act(async () => {});
+    const { input } = newClient();
+    const original = MOCK_CLIENTS[0];
+    const edited = { ...original, fullName: 'Nombre Editado', weightKg: 70 };
+
+    updateClientAction.mockResolvedValueOnce({ success: false, error: 'sin red' });
+    let res = { ok: true } as { ok: boolean; error?: string };
+    await act(async () => {
+      res = await result.current.saveClient(edited, input);
+    });
+    expect(res).toEqual({ ok: false, error: 'sin red' });
+    expect(result.current.clients[0].fullName).toBe(original.fullName);
+
+    await act(async () => {
+      res = await result.current.saveClient(edited, input);
+    });
+    expect(res.ok).toBe(true);
+    expect(updateClientAction).toHaveBeenLastCalledWith(original.id, input);
+    expect(result.current.clients[0]).toMatchObject({ fullName: 'Nombre Editado', weightKg: 70, shareToken: original.shareToken });
   });
 
   it('conserva los datos locales si la carga falla', async () => {

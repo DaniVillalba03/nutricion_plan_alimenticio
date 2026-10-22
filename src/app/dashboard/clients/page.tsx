@@ -9,9 +9,10 @@ import { Button, Card, Modal, PageHeader, useToast } from '@/components/ui';
 import type { Client } from '@/types/nutrition';
 
 export default function ClientsPage() {
-  const { clients, loading, selectClient, createClient, deleteClient } = usePatients();
+  const { clients, loading, selectClient, createClient, saveClient, deleteClient } = usePatients();
   const { toast } = useToast();
   const [isNewOpen, setIsNewOpen] = useState(false);
+  const [toEdit, setToEdit] = useState<Client | null>(null);
   const [toDelete, setToDelete] = useState<Client | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -58,7 +59,7 @@ export default function ClientsPage() {
         <Card>
           <ul className="divide-y divide-border">
             {clients.map((client) => (
-              <PatientCard key={client.id} client={client} onOpenPlan={selectClient} onDelete={setToDelete} />
+              <PatientCard key={client.id} client={client} onOpenPlan={selectClient} onEdit={setToEdit} onDelete={setToDelete} />
             ))}
           </ul>
         </Card>
@@ -87,6 +88,19 @@ export default function ClientsPage() {
           El enlace que le compartiste dejará de funcionar. Esta acción no se puede deshacer.
         </p>
       </Modal>
+
+      {toEdit && (
+        <NewPatientModal
+          open
+          client={toEdit}
+          onClose={() => setToEdit(null)}
+          onUpdate={async (client, input) => {
+            setToEdit(null);
+            const result = await saveClient(client, input);
+            toast(result.ok ? `Cambios de "${client.fullName}" guardados` : `No se pudo guardar: ${result.error}`);
+          }}
+        />
+      )}
 
       <NewPatientModal
         open={isNewOpen}

@@ -31,10 +31,23 @@ function isDemoDataAllowed(): boolean {
   return !isSupabaseConfigured() || process.env.NEXT_PUBLIC_ENABLE_DEMO_ACCESS === 'true';
 }
 
+const SESSION_EXPIRED = 'Tu sesión venció. Vuelve a iniciar sesión para continuar.';
+
 /**
- * Helper para obtener el usuario autenticado actual o fallback demo
+ * Helper para obtener el usuario autenticado actual o fallback demo.
+ * Con Supabase configurado y sin sesión, el fallback demo solo existe si el acceso demo está
+ * habilitado: de lo contrario devuelve `unauthenticated` y las acciones que escriben deben
+ * fallar con un error, nunca simular que guardaron.
  */
-async function getAuthenticatedUser() {
+interface AuthUser {
+  id: string;
+  email?: string;
+  isDemo: boolean;
+  /** Supabase configurado, sin sesión y sin acceso demo: no se debe leer ni escribir nada. */
+  unauthenticated?: boolean;
+}
+
+async function getAuthenticatedUser(): Promise<AuthUser> {
   const configured = isSupabaseConfigured();
   if (!configured) {
     return {
@@ -55,6 +68,9 @@ async function getAuthenticatedUser() {
   const user = session?.user;
 
   if (!user) {
+    if (!isDemoDataAllowed()) {
+      return { id: '', email: undefined, isDemo: false, unauthenticated: true };
+    }
     return {
       id: '00000000-0000-0000-0000-000000000001',
       email: 'lic.laura.molinas@nutriplan.py',
@@ -82,6 +98,7 @@ export async function getClientsAction(): Promise<{ success: boolean; data: Clie
 
   try {
     const user = await getAuthenticatedUser();
+    if (user.unauthenticated) return { success: false, data: [] };
     const supabase = await createClient();
 
     const { data: dbClients, error } = await supabase
@@ -151,6 +168,7 @@ export async function createClientAction(rawInput: unknown) {
 
   const clientData = parseResult.data;
   const user = await getAuthenticatedUser();
+  if (user.unauthenticated) return { success: false, error: SESSION_EXPIRED };
   const configured = isSupabaseConfigured();
 
   if (!configured || user.isDemo) {
@@ -235,6 +253,67 @@ export async function createClientAction(rawInput: unknown) {
   }
 }
 
+/** Actualiza los datos y metas de un paciente existente (y reemplaza sus restricciones). */
+export async function updateClientAction(clientId: string, rawInput: unknown): Promise<{ success: boolean; error?: string }> {
+  const parseResult = ClientInputSchema.safeParse(rawInput);
+  if (!parseResult.success) {
+    return { success: false, error: parseResult.error.issues.map((i) => i.message).join(', ') };
+  }
+  const data = parseResult.data;
+
+  const user = await getAuthenticatedUser();
+  if (user.unauthenticated) return { success: false, error: SESSION_EXPIRED };
+  if (!isSupabaseConfigured() || user.isDemo || !UUID_RE.test(clientId)) return { success: true };
+
+  try {
+    const supabase = await createClient();
+    const { data: updated, error } = await supabase
+      .from('clients')
+      .update({
+        full_name: data.fullName,
+        email: data.email || null,
+        phone: data.phone || null,
+        age: data.age,
+        gender: data.gender,
+        weight_kg: data.weightKg,
+        height_cm: data.heightCm || null,
+        activity_level: data.activityLevel || null,
+        target_kcal: data.targetKcal,
+        target_cho_g: data.targetChoG,
+        target_pro_g: data.targetProG,
+        target_lip_g: data.targetLipG,
+        notes: data.notes || null,
+      })
+      .eq('id', clientId)
+      .eq('nutritionist_id', user.id)
+      .select('id');
+
+    if (error) return { success: false, error: error.message };
+    if (!updated || updated.length === 0) return { success: false, error: 'No se encontró el paciente' };
+
+    // Las restricciones se reemplazan completas (solo las de tipo exclusión por motivo)
+    const { error: deleteRulesError } = await supabase
+      .from('client_food_rules')
+      .delete()
+      .eq('client_id', clientId)
+      .eq('rule_type', 'exclude');
+    if (deleteRulesError) return { success: false, error: deleteRulesError.message };
+
+    if (data.exclusions.length > 0) {
+      const { error: rulesError } = await supabase
+        .from('client_food_rules')
+        .insert(data.exclusions.map((reason) => ({ client_id: clientId, rule_type: 'exclude', reason })));
+      if (rulesError) return { success: false, error: rulesError.message };
+    }
+
+    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/clients');
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : 'Error inesperado' };
+  }
+}
+
 /**
  * Elimina un paciente y, en cascada (FK `ON DELETE CASCADE`), sus planes, versiones y reglas.
  * Los enlaces del portal de esos planes dejan de funcionar. La política RLS de `clients`
@@ -246,6 +325,7 @@ export async function deleteClientAction(clientId: string): Promise<{ success: b
   }
 
   const user = await getAuthenticatedUser();
+  if (user.unauthenticated) return { success: false, error: SESSION_EXPIRED };
   if (!isSupabaseConfigured() || user.isDemo) {
     // Modo demostración: no hay nada que borrar en la base
     return { success: true };
@@ -289,6 +369,7 @@ export async function savePlanAction(rawInput: unknown) {
 
   const planInput = parseResult.data;
   const user = await getAuthenticatedUser();
+  if (user.unauthenticated) return { success: false, error: SESSION_EXPIRED };
   const configured = isSupabaseConfigured();
 
   if (!configured || user.isDemo) {
@@ -397,7 +478,7 @@ export async function savePlanAction(rawInput: unknown) {
     // 3. Registrar comidas e ítems
     for (let mIdx = 0; mIdx < planInput.meals.length; mIdx++) {
       const meal = planInput.meals[mIdx];
-      const { data: dbMeal } = await supabase
+      const { data: dbMeal, error: mealError } = await supabase
         .from('plan_meals')
         .insert({
           plan_version_id: versionId,
@@ -408,7 +489,11 @@ export async function savePlanAction(rawInput: unknown) {
         .select()
         .single();
 
-      if (dbMeal && meal.items) {
+      if (mealError || !dbMeal) {
+        return { success: false, error: mealError?.message || `No se pudo guardar la comida "${meal.name}"` };
+      }
+
+      if (meal.items) {
         const itemsToInsert = meal.items.map((item: { groupId: string; subgroupId?: string; exchangeCount: number; selectedFoodId?: string }, iIdx: number) => ({
           meal_id: dbMeal.id,
           group_id: item.groupId,
@@ -418,7 +503,8 @@ export async function savePlanAction(rawInput: unknown) {
           order_index: iIdx,
         }));
 
-        await supabase.from('plan_items').insert(itemsToInsert);
+        const { error: itemsError } = await supabase.from('plan_items').insert(itemsToInsert);
+        if (itemsError) return { success: false, error: itemsError.message };
       }
     }
 
@@ -445,6 +531,7 @@ export async function getLatestPlanAction(
   if (!UUID_RE.test(clientId)) return { success: true }; // paciente de demostración o aún sin guardar
 
   const user = await getAuthenticatedUser();
+  if (user.unauthenticated) return { success: false, error: SESSION_EXPIRED };
   if (user.isDemo) return { success: true };
 
   try {
@@ -486,7 +573,7 @@ export async function getDashboardDataAction(): Promise<{
   if (realIds.length === 0) return { clients, plans: {} };
 
   const user = await getAuthenticatedUser();
-  if (user.isDemo) return { clients, plans: {} };
+  if (user.unauthenticated || user.isDemo) return { clients, plans: {} };
 
   try {
     const supabase = await createClient();
@@ -560,6 +647,7 @@ export async function updateShareSettingsAction(
     return { success: true };
   }
   const user = await getAuthenticatedUser();
+  if (user.unauthenticated) return { success: false, error: SESSION_EXPIRED };
   if (user.isDemo) return { success: true };
 
   try {

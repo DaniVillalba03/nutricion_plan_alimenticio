@@ -4,7 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import type { Client, MealPlan } from '@/types/nutrition';
 import { MOCK_CLIENTS } from '@/lib/mock-data';
 import { isDemoAccessEnabled } from '@/lib/supabase/client';
-import { getClientsAction, createClientAction, deleteClientAction, getLatestPlanAction } from '@/actions/nutrition-actions';
+import { getClientsAction, createClientAction, deleteClientAction, updateClientAction, getLatestPlanAction } from '@/actions/nutrition-actions';
 import type { ClientInput } from './build-client';
 
 interface CreateResult {
@@ -31,6 +31,8 @@ interface PatientsContextType {
   selectClient: (id: string) => void;
   /** Crea el paciente: lo muestra de inmediato y lo persiste con la server action. */
   createClient: (client: Client, input: ClientInput) => Promise<CreateResult>;
+  /** Guarda los cambios de un paciente: actualiza la lista solo cuando el servidor confirma. */
+  saveClient: (client: Client, input: ClientInput) => Promise<CreateResult>;
   /** Elimina el paciente con sus planes (irreversible) y lo quita de la lista si el servidor confirma. */
   deleteClient: (id: string) => Promise<CreateResult>;
   updateClient: (id: string, patch: Partial<Client>) => void;
@@ -176,6 +178,17 @@ export function PatientsProvider({ children, initialClients, initialPlans }: Pat
     return { ok: true };
   }, [planCache]);
 
+  const saveClient = useCallback(async (client: Client, input: ClientInput): Promise<CreateResult> => {
+    try {
+      const res = await updateClientAction(client.id, input);
+      if (!res.success) return { ok: false, error: res.error };
+    } catch (err: unknown) {
+      return { ok: false, error: err instanceof Error ? err.message : 'No se pudieron guardar los cambios' };
+    }
+    setClients((prev) => prev.map((c) => (c.id === client.id ? { ...c, ...client, shareToken: c.shareToken } : c)));
+    return { ok: true };
+  }, []);
+
   const updateClient = useCallback((id: string, patch: Partial<Client>) => {
     setClients((prev) => prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   }, []);
@@ -189,13 +202,14 @@ export function PatientsProvider({ children, initialClients, initialPlans }: Pat
       activeClient,
       selectClient: setSelectedClientId,
       createClient,
+      saveClient,
       deleteClient,
       updateClient,
       getCachedPlan,
       fetchPlan,
       cachePlan,
     };
-  }, [clients, loading, selectedClientId, createClient, deleteClient, updateClient, getCachedPlan, fetchPlan, cachePlan]);
+  }, [clients, loading, selectedClientId, createClient, saveClient, deleteClient, updateClient, getCachedPlan, fetchPlan, cachePlan]);
 
   return <PatientsContext.Provider value={value}>{children}</PatientsContext.Provider>;
 }

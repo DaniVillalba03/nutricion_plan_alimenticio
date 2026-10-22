@@ -10,7 +10,11 @@ import { buildClientFromInput, macroGramsFromSplit, type ClientInput } from './b
 interface NewPatientModalProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (client: Client, input: ClientInput) => void;
+  /** Alta de un paciente nuevo (se ignora si se pasa `client`). */
+  onCreate?: (client: Client, input: ClientInput) => void;
+  /** Modo edición: paciente a modificar. Monta el modal solo mientras se edita para partir de sus datos. */
+  client?: Client;
+  onUpdate?: (client: Client, input: ClientInput) => void;
 }
 
 const ACTIVITY_LEVELS = [
@@ -39,11 +43,31 @@ const EMPTY_FORM = {
 };
 
 type FormState = typeof EMPTY_FORM;
+
+function formFromClient(client: Client): FormState {
+  const pct = client.macroDistributionPct;
+  return {
+    fullName: client.fullName,
+    email: client.email ?? '',
+    phone: client.phone ?? '',
+    age: String(client.age),
+    gender: client.gender,
+    weightKg: String(client.weightKg),
+    heightCm: client.heightCm ? String(client.heightCm) : '',
+    activityLevel: client.activityLevel ?? ACTIVITY_LEVELS[1],
+    targetKcal: String(client.targetCalories),
+    pctCho: String(pct.carbohydrates),
+    pctPro: String(pct.proteins),
+    pctLip: String(pct.lipids),
+    notes: client.notes ?? '',
+  };
+}
 type Errors = Partial<Record<keyof FormState | 'macros', string>>;
 
-export function NewPatientModal({ open, onClose, onCreate }: NewPatientModalProps) {
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [exclusions, setExclusions] = useState<string[]>([]);
+export function NewPatientModal({ open, onClose, onCreate, client, onUpdate }: NewPatientModalProps) {
+  const editing = client !== undefined;
+  const [form, setForm] = useState<FormState>(() => (client ? formFromClient(client) : EMPTY_FORM));
+  const [exclusions, setExclusions] = useState<string[]>(() => client?.exclusions ?? []);
   const [customExclusion, setCustomExclusion] = useState('');
   const [errors, setErrors] = useState<Errors>({});
 
@@ -119,7 +143,13 @@ export function NewPatientModal({ open, onClose, onCreate }: NewPatientModalProp
       return;
     }
 
-    onCreate(buildClientFromInput(parsed.data, split), parsed.data);
+    const built = buildClientFromInput(parsed.data, split);
+    if (client) {
+      // Se conserva la identidad del paciente; solo cambian los datos del formulario
+      onUpdate?.({ ...client, ...built, id: client.id, shareToken: client.shareToken, isShareRevoked: client.isShareRevoked }, parsed.data);
+    } else {
+      onCreate?.(built, parsed.data);
+    }
     reset();
   };
 
@@ -128,7 +158,7 @@ export function NewPatientModal({ open, onClose, onCreate }: NewPatientModalProp
       open={open}
       onClose={close}
       size="lg"
-      title="Nuevo paciente"
+      title={editing ? 'Editar paciente' : 'Nuevo paciente'}
       description="Completa el perfil clínico. Las metas de macronutrientes se calculan desde las calorías y el reparto."
       footer={
         <>
@@ -136,7 +166,7 @@ export function NewPatientModal({ open, onClose, onCreate }: NewPatientModalProp
             Cancelar
           </Button>
           <Button variant="primary" type="submit" form="new-patient-form">
-            Crear paciente
+            {editing ? 'Guardar cambios' : 'Crear paciente'}
           </Button>
         </>
       }
@@ -179,7 +209,8 @@ export function NewPatientModal({ open, onClose, onCreate }: NewPatientModalProp
           <Field label="Nivel de actividad">
             {(p) => (
               <Select {...p} value={form.activityLevel} onChange={(e) => set('activityLevel', e.target.value)}>
-                {ACTIVITY_LEVELS.map((level) => (
+                {/* Un valor guardado que no esté en la lista se conserva como opción */}
+                {[...ACTIVITY_LEVELS, ...(ACTIVITY_LEVELS.includes(form.activityLevel) ? [] : [form.activityLevel])].map((level) => (
                   <option key={level} value={level}>
                     {level}
                   </option>

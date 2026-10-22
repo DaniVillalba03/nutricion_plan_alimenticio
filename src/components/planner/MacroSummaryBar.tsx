@@ -112,7 +112,7 @@ export function MacroSummaryBar({ totals, client, className }: MacroSummaryBarPr
   return (
     <section
       aria-label="Balance nutricional"
-      className={cn('force-dark isolate relative overflow-hidden rounded-[14px] border border-border bg-surface text-foreground', className)}
+      className={cn('isolate relative overflow-hidden rounded-[14px] border border-border bg-surface text-foreground shadow-card', className)}
     >
       <div
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-64"

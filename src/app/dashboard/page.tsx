@@ -69,17 +69,17 @@ function RecordCell({
   unit?: string;
   hint?: string;
   dot?: string;
-  /** Ancla visual: panel oscuro con la cifra en verde, también en modo claro. */
+  /** Ancla visual: tarjeta teñida de verde suave. */
   featured?: boolean;
 }) {
   return (
-    <div className={`rounded-[14px] border border-border bg-surface px-4 py-3.5 shadow-card ${featured ? 'force-dark' : ''}`}>
+    <div className={`rounded-[14px] border border-border bg-surface px-4 py-3.5 shadow-card ${featured ? 'border-primary/30 bg-primary-soft' : ''}`}>
       <dt className="mono-label flex items-center gap-1.5 text-subtle">
         {dot && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} aria-hidden="true" />}
         {label}
       </dt>
       <dd className="mt-2 flex items-baseline gap-1.5 tabular-nums">
-        <span className={`text-[30px] font-bold leading-none tracking-[-0.04em] ${featured ? 'text-primary-text' : 'text-foreground'}`}>{value}</span>
+        <span className={`text-[30px] font-bold leading-none tracking-[-0.04em] ${featured ? 'text-primary-soft-foreground' : 'text-foreground'}`}>{value}</span>
         {unit && <span className="text-sm text-muted">{unit}</span>}
         {hint && <span className="mono-label ml-auto text-subtle">{hint}</span>}
       </dd>

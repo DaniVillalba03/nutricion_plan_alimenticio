@@ -106,7 +106,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
       <main className="relative mx-auto w-full max-w-lg flex-1 px-5 pb-20 pt-6">
         <section
           aria-label="Tu plan de hoy"
-          className="force-dark relative isolate overflow-hidden rounded-[22px] border border-border bg-background p-6 text-foreground"
+          className="relative isolate overflow-hidden rounded-[22px] border border-border bg-surface p-6 text-foreground shadow-card"
         >
           <div
             className="pointer-events-none absolute inset-0 -z-10"
@@ -317,7 +317,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
 /** Celda de la tarjeta de metas del día. */
 function GoalCell({ label, value, unit, dot }: { label: string; value: string; unit: string; dot?: string }) {
   return (
-    <div className="rounded-[12px] border border-border bg-surface/70 px-2 py-3.5 text-center">
+    <div className="rounded-[12px] border border-border bg-surface-muted/60 px-2 py-3.5 text-center">
       <dt className="mono-label flex items-center justify-center gap-1.5 text-subtle">
         {dot && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} aria-hidden="true" />}
         {label}

@@ -197,7 +197,7 @@ export default function FoodsCatalogPage() {
                           {food.isParaguayanMarked && (
                             <span
                               className="ml-2 align-middle text-xs font-medium text-warning"
-                              title="Sello comercial Paraguay"
+                              title="Alimento paraguayo"
                             >
                               PY*
                             </span>

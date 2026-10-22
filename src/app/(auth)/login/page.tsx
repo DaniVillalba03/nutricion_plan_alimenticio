@@ -4,6 +4,7 @@ import React, { useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient, isSupabaseConfigured, isDemoAccessEnabled } from '@/lib/supabase/client';
 import { Button, Field, Input } from '@/components/ui';
+import { Brand } from '@/components/layout/Brand';
 import { ArrowRight } from 'lucide-react';
 
 function LoginForm() {
@@ -102,9 +103,7 @@ function LoginForm() {
     <div className="grid min-h-screen bg-background text-foreground lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
       {/* Panel de marca: solo tipografía y una cita, sin ilustraciones genéricas */}
       <aside className="hidden flex-col justify-between bg-[#0e0e10] p-12 text-[#f2f2f4] lg:flex">
-        <p className="font-display text-2xl font-medium tracking-tight">
-          NutriPlan<span className="ml-1 align-super font-sans text-[11px] font-semibold tracking-wider text-[#3fb98c]">PY</span>
-        </p>
+        <Brand size="md" onDark />
         <blockquote className="max-w-md">
           <p className="font-display text-[34px] font-medium italic leading-snug text-[#f2f2f4]">
             Un hábito que fue aprendido puede ser reeducado.
@@ -116,9 +115,7 @@ function LoginForm() {
 
       <main className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
-          <p className="mb-10 font-display text-2xl font-medium tracking-tight lg:hidden">
-            NutriPlan<span className="ml-1 align-super font-sans text-[11px] font-semibold tracking-wider text-primary">PY</span>
-          </p>
+          <Brand size="md" className="mb-10 lg:hidden" />
 
           <h1 className="text-[32px] font-medium leading-tight">{isSignUp ? 'Crea tu cuenta' : 'Bienvenida de vuelta'}</h1>
           <p className="mt-2 text-[15px] text-muted">

@@ -4,8 +4,9 @@ import React, { useState, useMemo } from 'react';
 import { MOCK_EXCHANGE_GROUPS, MOCK_FOODS } from '@/lib/mock-data';
 import { Client, Food, MealPlan, MealPlanMeal, MealPlanItem, ExchangeGroup } from '@/types/nutrition';
 import { formatFriendlyFraction, getFoodEquivalents } from '@/core/exchange-engine';
-import { ArrowLeftRight, CheckCircle2, Circle, Search, ShieldAlert } from 'lucide-react';
+import { ArrowLeftRight, CheckCircle2, Circle, Search, ShieldAlert, Utensils } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { Brand } from '@/components/layout/Brand';
 import { Modal, ToastProvider, useToast } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
@@ -94,53 +95,69 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-lg items-center justify-between px-5 py-3.5">
-          <p className="font-display text-xl font-medium tracking-tight">
-            NutriPlan<span className="ml-1 align-super font-sans text-[10px] font-semibold tracking-wider text-primary">PY</span>
-          </p>
+      <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
+        <div className="mx-auto flex max-w-lg items-center justify-between px-5 py-3">
+          <Brand size="sm" />
           <ThemeToggle />
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-lg flex-1 px-5 pb-20 pt-10">
-        <section>
-          <h1 className="text-[40px] font-medium leading-[1.1]">Hola, {firstName(client.fullName)}</h1>
-          <p className="mt-3 text-[15px] text-muted">
-            Tu plan de hoy: <span className="font-medium text-foreground tabular-nums">{client.targetCalories.toLocaleString('es-PY')} kcal</span>
-          </p>
-          <p className="mt-1 text-sm tabular-nums text-muted">
-            {client.targetMacros.carbohydrates} g carbohidratos · {client.targetMacros.proteins} g proteínas ·{' '}
-            {client.targetMacros.lipids} g lípidos
-          </p>
+      <main className="mx-auto w-full max-w-lg flex-1 px-5 pb-20 pt-8">
+        <h1 className="text-[38px] font-medium leading-[1.1]">Hola, {firstName(client.fullName)}</h1>
+        <p className="mt-2 text-[15px] text-muted">Este es tu plan de alimentación.</p>
 
-          <div className="mt-6">
+        <section
+          aria-label="Tu meta de hoy"
+          className="mt-6 overflow-hidden rounded-xl border border-border bg-surface shadow-[0_1px_2px_rgb(15_15_25/0.05)] dark:shadow-none"
+        >
+          <dl className="grid grid-cols-4 divide-x divide-border">
+            <GoalCell label="Calorías" value={client.targetCalories.toLocaleString('es-PY')} unit="kcal" />
+            <GoalCell label="Carbo." value={`${client.targetMacros.carbohydrates}`} unit="g" dot="bg-macro-cho" />
+            <GoalCell label="Prote." value={`${client.targetMacros.proteins}`} unit="g" dot="bg-macro-pro" />
+            <GoalCell label="Lípidos" value={`${client.targetMacros.lipids}`} unit="g" dot="bg-macro-lip" />
+          </dl>
+          <div className="border-t border-border bg-surface-muted/50 px-4 py-3">
             <div className="flex items-baseline justify-between text-sm">
-              <span className="text-foreground">Comidas de hoy</span>
+              <span className="font-medium text-foreground">Comidas de hoy</span>
               <span className="tabular-nums text-muted">
                 {completedMealsCount} de {totalMealsCount}
               </span>
             </div>
             <div
-              className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-muted"
+              className="mt-2 h-2 w-full overflow-hidden rounded-full bg-border"
               role="progressbar"
               aria-label="Comidas completadas hoy"
               aria-valuenow={adherencePercent}
               aria-valuemin={0}
               aria-valuemax={100}
             >
-              <div className="h-full rounded-full bg-foreground transition-all duration-300" style={{ width: `${adherencePercent}%` }} />
+              <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${adherencePercent}%` }} />
             </div>
           </div>
         </section>
 
-        <div className="mt-10 space-y-10">
+        <div className="mt-8 space-y-5">
           {patientMeals.map((meal) => (
-            <section key={meal.id} aria-label={meal.name}>
-              <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
-                <div className="flex items-baseline gap-3">
-                  <h2 className="text-[26px] font-medium leading-tight">{meal.name}</h2>
-                  {meal.time && <span className="text-sm tabular-nums text-muted">{meal.time}</span>}
+            <section
+              key={meal.id}
+              aria-label={meal.name}
+              className={cn(
+                'overflow-hidden rounded-xl border bg-surface shadow-[0_1px_2px_rgb(15_15_25/0.05)] transition-colors dark:shadow-none',
+                meal.isCompleted ? 'border-primary/50' : 'border-border'
+              )}
+            >
+              <div className="flex items-center justify-between gap-3 border-b border-border bg-surface-muted/50 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-muted"
+                    aria-hidden="true"
+                  >
+                    <Utensils className="h-4 w-4" strokeWidth={1.6} />
+                  </span>
+                  <div>
+                    <h2 className="text-[22px] font-medium leading-tight">{meal.name}</h2>
+                    {meal.time && <p className="text-[13px] tabular-nums text-muted">{meal.time}</p>}
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -149,8 +166,8 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                   className={cn(
                     'inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors',
                     meal.isCompleted
-                      ? 'border-foreground bg-foreground text-background'
-                      : 'border-border-strong text-muted hover:bg-surface-muted hover:text-foreground'
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border-strong bg-surface text-muted hover:bg-surface-muted hover:text-foreground'
                   )}
                 >
                   {meal.isCompleted ? (
@@ -179,7 +196,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                     : '';
 
                   return (
-                    <li key={item.id} className="flex items-center justify-between gap-4 py-4">
+                    <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-4">
                       <div className="min-w-0">
                         <p className="flex items-center gap-2 text-[13px] text-muted">
                           <span
@@ -201,7 +218,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                       <button
                         type="button"
                         onClick={() => handleOpenChange(meal.id, item)}
-                        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border border-border-strong px-3.5 text-sm font-medium transition-colors hover:bg-surface-muted active:scale-95"
+                        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border border-border-strong bg-surface px-3.5 text-sm font-medium transition-colors hover:bg-surface-muted active:scale-95"
                       >
                         <ArrowLeftRight className="h-4 w-4 text-muted" />
                         Cambiar
@@ -214,10 +231,12 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
           ))}
         </div>
 
-        <p className="mt-14 text-center font-display text-xl font-medium italic leading-snug text-muted">
-          Un hábito que fue aprendido puede ser reeducado.
-        </p>
-        <p className="mt-2 text-center text-[13px] text-subtle">Lic. Laura Molinas · Reg. Prof. 6020</p>
+        <div className="mt-12 rounded-xl border border-dashed border-border-strong px-6 py-6 text-center">
+          <p className="font-display text-xl font-medium italic leading-snug text-foreground">
+            Un hábito que fue aprendido puede ser reeducado.
+          </p>
+          <p className="mt-2 text-[13px] text-muted">Lic. Laura Molinas · Reg. Prof. 6020</p>
+        </div>
       </main>
 
       <Modal
@@ -275,6 +294,22 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
           )}
         </div>
       </Modal>
+    </div>
+  );
+}
+
+/** Celda de la tarjeta de metas del día. */
+function GoalCell({ label, value, unit, dot }: { label: string; value: string; unit: string; dot?: string }) {
+  return (
+    <div className="px-2 py-3.5 text-center">
+      <dt className="flex items-center justify-center gap-1.5 text-[12px] text-muted">
+        {dot && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} aria-hidden="true" />}
+        {label}
+      </dt>
+      <dd className="mt-1 tabular-nums">
+        <span className="block font-display text-[24px] font-medium leading-none text-foreground">{value}</span>
+        <span className="mt-0.5 block text-[12px] text-muted">{unit}</span>
+      </dd>
     </div>
   );
 }

@@ -55,6 +55,34 @@ interface ActiveModalState {
   selectedFoodId?: string;
 }
 
+/** Celda de la tira de datos clínicos del paciente. */
+function RecordCell({
+  label,
+  value,
+  hint,
+  dot,
+  className,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  dot?: string;
+  className?: string;
+}) {
+  return (
+    <div className={`px-5 py-3.5 ${className ?? ''}`}>
+      <dt className="flex items-center gap-1.5 text-[13px] text-muted">
+        {dot && <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden="true" />}
+        {label}
+      </dt>
+      <dd className="mt-0.5 tabular-nums text-foreground">
+        <span className="text-[17px] font-medium">{value}</span>
+        {hint && <span className="ml-1.5 text-[13px] text-muted">{hint}</span>}
+      </dd>
+    </div>
+  );
+}
+
 type ToolModal = 'pdf' | 'share' | 'saveTemplate' | 'newVersion' | 'history' | 'duplicate' | 'newPatient' | null;
 
 /** Plan de inicio: el de demostración solo para su paciente de ejemplo; para el resto, vacío. */
@@ -251,7 +279,8 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
 
   return (
     <div>
-      <header>
+      <header className="overflow-hidden rounded-xl border border-border bg-surface shadow-[0_1px_2px_rgb(15_15_25/0.05)] dark:shadow-none">
+        <div className="p-6">
         <p className="mb-2 text-[13px] font-medium text-muted">Constructor de planes</p>
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
@@ -261,17 +290,24 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
               onSelect={selectClient}
               onCreate={() => setToolModal('newPatient')}
             />
-            <p className="mt-2 text-[15px] text-muted">
-              {activeClient.age} años · {activeClient.targetCalories.toLocaleString('es-PY')} kcal al día
-              {restrictions.length > 0 && (
-                <>
-                  {' · '}
-                  <span className="text-danger">Sin {restrictions.map((r) => r.toLowerCase()).join(', ')}</span>
-                </>
-              )}
-              {activeClient.isShareRevoked && <span className="text-danger"> · enlace revocado</span>}
-            </p>
-            {activeClient.notes && <p className="mt-1.5 max-w-2xl text-sm text-muted">{activeClient.notes}</p>}
+            {(restrictions.length > 0 || activeClient.isShareRevoked) && (
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                {restrictions.map((r) => (
+                  <span
+                    key={r}
+                    className="inline-flex items-center rounded-md border border-danger/30 bg-danger-soft px-2 py-0.5 text-[13px] font-medium text-danger-soft-foreground"
+                  >
+                    Sin {r.toLowerCase()}
+                  </span>
+                ))}
+                {activeClient.isShareRevoked && (
+                  <span className="inline-flex items-center rounded-md border border-border-strong px-2 py-0.5 text-[13px] text-muted">
+                    Enlace revocado
+                  </span>
+                )}
+              </div>
+            )}
+            {activeClient.notes && <p className="mt-3 max-w-2xl text-sm text-muted">{activeClient.notes}</p>}
           </div>
 
           <div className="flex shrink-0 flex-wrap items-center gap-2 lg:flex-nowrap">
@@ -380,13 +416,42 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setToolModal('history')}
-          className="mt-3 text-sm text-muted underline-offset-4 transition-colors hover:text-foreground hover:underline"
-        >
-          Versión {currentVersion.toFixed(1)} · ver historial
-        </button>
+        </div>
+
+        <dl className="grid grid-cols-2 divide-x divide-y divide-border border-t border-border bg-surface-muted/40 sm:grid-cols-5 sm:divide-y-0">
+          <RecordCell label="Edad" value={`${activeClient.age} años`} />
+          <RecordCell label="Meta calórica" value={`${activeClient.targetCalories.toLocaleString('es-PY')} kcal`} />
+          <RecordCell
+            label="Carbohidratos"
+            dot="bg-macro-cho"
+            value={`${activeClient.targetMacros.carbohydrates} g`}
+            hint={`${activeClient.macroDistributionPct.carbohydrates}%`}
+          />
+          <RecordCell
+            label="Proteínas"
+            dot="bg-macro-pro"
+            value={`${activeClient.targetMacros.proteins} g`}
+            hint={`${activeClient.macroDistributionPct.proteins}%`}
+          />
+          <RecordCell
+            label="Lípidos"
+            dot="bg-macro-lip"
+            value={`${activeClient.targetMacros.lipids} g`}
+            hint={`${activeClient.macroDistributionPct.lipids}%`}
+            className="col-span-2 sm:col-span-1"
+          />
+        </dl>
+
+        <div className="flex items-center justify-between border-t border-border px-6 py-2.5 text-[13px] text-muted">
+          <span>Plan versión {currentVersion.toFixed(1)}</span>
+          <button
+            type="button"
+            onClick={() => setToolModal('history')}
+            className="font-medium text-foreground underline decoration-border-strong underline-offset-4 transition-colors hover:decoration-foreground"
+          >
+            Ver historial
+          </button>
+        </div>
       </header>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-14">

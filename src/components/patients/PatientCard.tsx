@@ -21,15 +21,30 @@ export function PatientCard({ client, onOpenPlan }: PatientCardProps) {
     client.heightCm ? `${client.heightCm} cm` : null,
   ].filter(Boolean);
 
+  const initials = client.fullName
+    .replace(/^(lic|licda|ing|dr|dra)\.?\s+/i, '')
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w.charAt(0).toUpperCase())
+    .join('');
+
   return (
     <li className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
-      <div className="min-w-0">
+      <div className="flex min-w-0 items-start gap-4">
+        <span
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border-strong bg-surface-muted text-sm font-semibold text-foreground"
+          aria-hidden="true"
+        >
+          {initials}
+        </span>
+        <div className="min-w-0">
         <h3 className="font-display text-xl font-medium text-foreground">{client.fullName}</h3>
         <p className="mt-0.5 text-sm text-muted">{details.join(' · ')}</p>
         {client.activityLevel && <p className="mt-0.5 text-sm text-muted">{client.activityLevel}</p>}
         {client.exclusions.length > 0 && (
           <p className="mt-1.5 text-sm text-danger">Sin {client.exclusions.map((e) => e.toLowerCase()).join(', ')}</p>
         )}
+        </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-6">

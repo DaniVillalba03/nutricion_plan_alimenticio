@@ -16,24 +16,24 @@
 :root {
   color-scheme: light;
 
-  --background: #f8f8f9;
+  --background: #f3f4f6;
   --foreground: #111113;
 
   --surface: #ffffff;
-  --surface-muted: #f0f0f2;
+  --surface-muted: #eceef2;
   --surface-elevated: #ffffff;
 
-  --border: #e4e4e8;
-  --border-strong: #d1d1d8;
+  --border: #dcdee4;
+  --border-strong: #c4c7d0;
 
-  --muted: #5d5d67;
-  --subtle: #8a8a95;
+  --muted: #575b66;
+  --subtle: #83878f;
 
   /* La marca se usa con moderación: estados de éxito, selección y la firma "PY" */
-  --primary: #167a58;
-  --primary-hover: #0f6447;
-  --primary-soft: #e4f2ec;
-  --primary-soft-foreground: #0d5e41;
+  --primary: #0f7a5a;
+  --primary-hover: #0a634a;
+  --primary-soft: #dff3ea;
+  --primary-soft-foreground: #0b6048;
   --primary-foreground: #ffffff;
 
   /* La acción principal es tinta: negro en claro, blanco en oscuro */
@@ -65,23 +65,23 @@
 .dark {
   color-scheme: dark;
 
-  --background: #0a0a0b;
+  --background: #08080a;
   --foreground: #f2f2f4;
 
-  --surface: #111113;
-  --surface-muted: #1a1a1d;
-  --surface-elevated: #161619;
+  --surface: #121216;
+  --surface-muted: #1c1c22;
+  --surface-elevated: #18181e;
 
-  --border: #242429;
-  --border-strong: #36363d;
+  --border: #2a2a33;
+  --border-strong: #3f3f4b;
 
-  --muted: #a1a1ab;
-  --subtle: #6d6d78;
+  --muted: #a3a3b0;
+  --subtle: #6f6f7c;
 
-  --primary: #3fb98c;
-  --primary-hover: #5bcfa3;
-  --primary-soft: rgb(63 185 140 / 0.13);
-  --primary-soft-foreground: #82ddb9;
+  --primary: #34c38f;
+  --primary-hover: #55d6a5;
+  --primary-soft: rgb(52 195 143 / 0.14);
+  --primary-soft-foreground: #86e2bf;
   --primary-foreground: #03150d;
 
   --accent: #f2f2f4;

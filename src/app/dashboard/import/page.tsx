@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import { validateAndImportFoodsAction, ProcessedImportRow } from '@/actions/nutrition-actions';
+import { validateAndImportFoodsAction, ProcessedImportRow } from '@/actions/foods';
 import { Badge, Button, Card, Field, Input, PageHeader, Textarea } from '@/components/ui';
 import { RefreshCw } from 'lucide-react';
 

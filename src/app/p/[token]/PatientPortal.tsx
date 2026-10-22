@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { MOCK_EXCHANGE_GROUPS, MOCK_FOODS } from '@/lib/mock-data';
+import { MOCK_EXCHANGE_GROUPS } from '@/lib/mock-data';
 import { Client, Food, MealPlan, MealPlanMeal, MealPlanItem, ExchangeGroup } from '@/types/nutrition';
 import { formatFriendlyFraction, getFoodEquivalents } from '@/core/exchange-engine';
 import { applyProgress, type PortalProgress } from '@/core/portal-progress';
-import { setPortalFoodAction, setPortalMealAction } from '@/actions/nutrition-actions';
+import { setPortalFoodAction, setPortalMealAction } from '@/actions/portal';
 import { ArrowLeftRight, CheckCircle2, Circle, Search, ShieldAlert, Utensils } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { Brand } from '@/components/layout/Brand';
@@ -36,9 +36,11 @@ interface PortalProps {
   today: string;
   /** Avance ya guardado (comidas completadas hoy y alimentos elegidos). */
   initialProgress: PortalProgress;
+  /** Catálogo de alimentos (de la base de datos) para mostrar y ofrecer equivalentes. */
+  foods: Food[];
 }
 
-function PatientPortalContent({ client, plan, token, today, initialProgress }: PortalProps) {
+function PatientPortalContent({ client, plan, token, today, initialProgress, foods }: PortalProps) {
   const { toast } = useToast();
 
   // El avance vive en la base de datos: llega con la página y cada cambio se guarda en el servidor
@@ -59,7 +61,7 @@ function PatientPortalContent({ client, plan, token, today, initialProgress }: P
   const [modalSearch, setModalSearch] = useState('');
 
   const groupsMap = useMemo(() => new Map<string, ExchangeGroup>(MOCK_EXCHANGE_GROUPS.map((g) => [g.id, g])), []);
-  const foodsMap = useMemo(() => new Map<string, Food>(MOCK_FOODS.map((f) => [f.id, f])), []);
+  const foodsMap = useMemo(() => new Map<string, Food>(foods.map((f) => [f.id, f])), [foods]);
 
   const totalMealsCount = patientMeals.length;
   const completedMealsCount = patientMeals.filter((m) => m.isCompleted).length;
@@ -130,7 +132,7 @@ function PatientPortalContent({ client, plan, token, today, initialProgress }: P
 
   // Equivalentes permitidos: se ocultan los excluidos por las restricciones del paciente
   const allowedEquivalents = changeModal.isOpen
-    ? getFoodEquivalents(changeModal.groupId, changeModal.exchangeCount, MOCK_FOODS, client, modalSearch).filter(
+    ? getFoodEquivalents(changeModal.groupId, changeModal.exchangeCount, foods, client, modalSearch).filter(
         (eq) => !eq.isExcluded
       )
     : [];
@@ -247,7 +249,7 @@ function PatientPortalContent({ client, plan, token, today, initialProgress }: P
 
                   const selectedFood = item.selectedFoodId
                     ? foodsMap.get(item.selectedFoodId)
-                    : MOCK_FOODS.find((f) => f.groupId === group.id);
+                    : foods.find((f) => f.groupId === group.id);
                   const calculatedGrams = selectedFood ? Math.round(selectedFood.baseGrams * item.exchangeCount) : 0;
                   const friendlyHouseholdQty = selectedFood
                     ? formatFriendlyFraction(Math.round(selectedFood.householdQty * item.exchangeCount * 100) / 100)

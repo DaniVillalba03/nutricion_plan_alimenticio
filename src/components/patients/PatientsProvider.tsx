@@ -4,7 +4,9 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import type { Client, MealPlan } from '@/types/nutrition';
 import { MOCK_CLIENTS } from '@/lib/mock-data';
 import { isDemoAccessEnabled } from '@/lib/supabase/client';
-import { getClientsAction, createClientAction, deleteClientAction, updateClientAction, getLatestPlanAction } from '@/actions/nutrition-actions';
+import { getClientsAction, createClientAction, deleteClientAction, updateClientAction } from '@/actions/clients';
+import { getLatestPlanAction } from '@/actions/plans';
+import { redirectIfSessionExpired } from '@/lib/session';
 import type { ClientInput } from './build-client';
 
 interface CreateResult {
@@ -141,6 +143,7 @@ export function PatientsProvider({ children, initialClients, initialPlans }: Pat
       const res = await createClientAction(input);
       if (!res.success) {
         rollback();
+        redirectIfSessionExpired(res.error);
         return { ok: false, error: res.error };
       }
       // Con Supabase la fila devuelta es de la base (snake_case): se recarga la lista oficial.
@@ -167,7 +170,10 @@ export function PatientsProvider({ children, initialClients, initialPlans }: Pat
   const deleteClient = useCallback(async (id: string): Promise<CreateResult> => {
     try {
       const res = await deleteClientAction(id);
-      if (!res.success) return { ok: false, error: res.error };
+      if (!res.success) {
+        redirectIfSessionExpired(res.error);
+        return { ok: false, error: res.error };
+      }
     } catch (err: unknown) {
       return { ok: false, error: err instanceof Error ? err.message : 'No se pudo eliminar el paciente' };
     }
@@ -181,7 +187,10 @@ export function PatientsProvider({ children, initialClients, initialPlans }: Pat
   const saveClient = useCallback(async (client: Client, input: ClientInput): Promise<CreateResult> => {
     try {
       const res = await updateClientAction(client.id, input);
-      if (!res.success) return { ok: false, error: res.error };
+      if (!res.success) {
+        redirectIfSessionExpired(res.error);
+        return { ok: false, error: res.error };
+      }
     } catch (err: unknown) {
       return { ok: false, error: err instanceof Error ? err.message : 'No se pudieron guardar los cambios' };
     }

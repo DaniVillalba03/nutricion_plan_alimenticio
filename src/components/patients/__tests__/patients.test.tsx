@@ -11,12 +11,14 @@ const getLatestPlanAction = vi.fn();
 const deleteClientAction = vi.fn();
 const updateClientAction = vi.fn();
 
-vi.mock('@/actions/nutrition-actions', () => ({
+vi.mock('@/actions/clients', () => ({
   getClientsAction: (...args: unknown[]) => getClientsAction(...args),
   createClientAction: (...args: unknown[]) => createClientAction(...args),
-  getLatestPlanAction: (...args: unknown[]) => getLatestPlanAction(...args),
   deleteClientAction: (...args: unknown[]) => deleteClientAction(...args),
   updateClientAction: (...args: unknown[]) => updateClientAction(...args),
+}));
+vi.mock('@/actions/plans', () => ({
+  getLatestPlanAction: (...args: unknown[]) => getLatestPlanAction(...args),
 }));
 
 import { PatientsProvider, usePatients } from '../PatientsProvider';

@@ -1,6 +1,8 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { getPatientPlanByTokenAction, getPortalProgressAction } from '@/actions/nutrition-actions';
+import { connection } from 'next/server';
+import { getPatientPlanByTokenAction, getPortalProgressAction } from '@/actions/portal';
+import { getCatalogAction } from '@/actions/foods';
 import { todayInParaguay } from '@/core/portal-progress';
 import { PatientPortal, PortalUnavailable } from './PatientPortal';
 
@@ -13,14 +15,25 @@ export const metadata: Metadata = {
 
 async function PortalLoader({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
+  // La fecha de hoy y el avance cambian en cada visita: se resuelve siempre al momento de la petición
+  await connection();
   const result = await getPatientPlanByTokenAction(token);
 
   if (!result.success || !result.client || !result.plan) return <PortalUnavailable />;
 
   // El "hoy" del paciente es el de Paraguay; el avance de ese día llega ya con la página
   const today = todayInParaguay();
-  const initialProgress = await getPortalProgressAction(token, today);
-  return <PatientPortal client={result.client} plan={result.plan} token={token} today={today} initialProgress={initialProgress} />;
+  const [initialProgress, foods] = await Promise.all([getPortalProgressAction(token, today), getCatalogAction()]);
+  return (
+    <PatientPortal
+      client={result.client}
+      plan={result.plan}
+      token={token}
+      today={today}
+      initialProgress={initialProgress}
+      foods={foods}
+    />
+  );
 }
 
 export default function PatientPortalPage({ params }: { params: Promise<{ token: string }> }) {

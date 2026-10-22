@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   MOCK_EXCHANGE_GROUPS,
-  MOCK_FOODS,
   MOCK_INITIAL_PLAN,
   MOCK_PLAN_TEMPLATES,
 } from '@/lib/mock-data';
@@ -13,8 +12,10 @@ import { cloneDeep, newId } from '@/lib/utils';
 import { MEAL_TYPES } from '@/core/plan-operations';
 import { emptyPlanFor } from '@/core/stored-plan';
 import { isDemoAccessEnabled } from '@/lib/supabase/client';
-import { getPlanAdherenceAction, savePlanAction, updateShareSettingsAction } from '@/actions/nutrition-actions';
+import { getPlanAdherenceAction, savePlanAction, updateShareSettingsAction } from '@/actions/plans';
 import { usePatients } from '@/components/patients/PatientsProvider';
+import { useCatalog } from '@/components/catalog/CatalogProvider';
+import { redirectIfSessionExpired } from '@/lib/session';
 import { PatientSwitcher } from '@/components/patients/PatientSwitcher';
 import { NewPatientModal } from '@/components/patients/NewPatientModal';
 import { MacroSummaryBar, MacroMiniBar } from '@/components/planner/MacroSummaryBar';
@@ -98,6 +99,7 @@ function initialPlanFor(client: Client): MealPlan {
 /** Se monta con `key={paciente.id}`: al cambiar de paciente el constructor arranca de cero. */
 function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
   const { clients, selectClient, updateClient, createClient, getCachedPlan, fetchPlan, cachePlan } = usePatients();
+  const { foods } = useCatalog();
   const { toast } = useToast();
 
   // El plan guardado ya suele estar en caché (lo trajo el servidor con la pantalla): se muestra
@@ -180,7 +182,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
   const handleSelectSuggestedFood = (foodId: string) => {
     if (!equivalents.mealId || !equivalents.itemId) return;
     editor.setSuggestedFood(equivalents.mealId, equivalents.itemId, foodId);
-    const foodName = MOCK_FOODS.find((f) => f.id === foodId)?.name || 'Alimento';
+    const foodName = foods.find((f) => f.id === foodId)?.name || 'Alimento';
     toast(`Se fijó "${foodName}" como sugerencia`);
   };
 
@@ -270,6 +272,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
         editor.setPersisted(res.planId, res.shareToken, activeClient.id);
         cachePlan(activeClient.id, { ...plan, id: res.planId, shareToken: res.shareToken, clientId: activeClient.id });
       }
+      if (!res.success) redirectIfSessionExpired(res.error);
       toast(res.success ? ('message' in res && res.message ? res.message : 'Plan guardado correctamente') : `No se pudo guardar: ${res.error}`);
     } catch {
       toast('No se pudo guardar el plan. Revisa tu conexión.');
@@ -283,6 +286,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
     try {
       const res = await updateShareSettingsAction(plan.clientId === activeClient.id ? plan.id : '', isRevoked, expiresAt);
       persisted = res.success;
+      if (!res.success) redirectIfSessionExpired(res.error);
     } catch {
       persisted = false;
     }
@@ -554,7 +558,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
                   index={mealIndex}
                   meal={meal}
                   exchangeGroups={MOCK_EXCHANGE_GROUPS}
-                  allFoods={MOCK_FOODS}
+                  allFoods={foods}
                   onUpdateItem={editor.updateItem}
                   onRemoveItem={editor.removeItem}
                   onAddItem={editor.addItem}
@@ -580,7 +584,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
         group={equivalents.group}
         exchangeCount={equivalents.exchangeCount}
         client={activeClient}
-        allFoods={MOCK_FOODS}
+        allFoods={foods}
         selectedFoodId={equivalents.selectedFoodId}
         onSelectFood={handleSelectSuggestedFood}
       />
@@ -591,7 +595,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
         plan={plan}
         client={activeClient}
         exchangeGroups={MOCK_EXCHANGE_GROUPS}
-        allFoods={MOCK_FOODS}
+        allFoods={foods}
       />
 
       <SharePlanModal

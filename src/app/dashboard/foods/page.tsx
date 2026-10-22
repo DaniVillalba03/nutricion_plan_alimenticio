@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { MOCK_EXCHANGE_GROUPS, MOCK_SUBGROUPS, MOCK_FOODS } from '@/lib/mock-data';
-import { Food, FoodState } from '@/types/nutrition';
+import { MOCK_EXCHANGE_GROUPS, MOCK_SUBGROUPS } from '@/lib/mock-data';
+import { useCatalog } from '@/components/catalog/CatalogProvider';
+import { FoodState } from '@/types/nutrition';
 import { normalizeText } from '@/core/exchange-engine';
 import { FoodCalculatorModal } from '@/components/foods/FoodCalculatorModal';
 import { Button, Card, PageHeader, Select, Tabs, useToast } from '@/components/ui';
@@ -13,7 +14,7 @@ type StateFilter = 'all' | FoodState;
 
 export default function FoodsCatalogPage() {
   const { toast } = useToast();
-  const [foodsList, setFoodsList] = useState<Food[]>(MOCK_FOODS);
+  const { foods: foodsList, addFood } = useCatalog();
   const [selectedGroupId, setSelectedGroupId] = useState<string>('all');
   const [selectedSubgroupId, setSelectedSubgroupId] = useState<string>('all');
   const [selectedState, setSelectedState] = useState<StateFilter>('all');
@@ -239,10 +240,13 @@ export default function FoodsCatalogPage() {
       <FoodCalculatorModal
         open={isCalculatorOpen}
         onClose={() => setIsCalculatorOpen(false)}
-        onCreate={(food, groupName) => {
-          setFoodsList((prev) => [food, ...prev]);
+        onCreate={async (food, groupName) => {
           setIsCalculatorOpen(false);
-          toast(`Alimento "${food.name}" agregado a "${groupName}"`, 4000);
+          const result = await addFood(food);
+          toast(
+            result.ok ? `Alimento "${food.name}" agregado a "${groupName}"` : `No se pudo guardar el alimento: ${result.error}`,
+            4000
+          );
         }}
       />
     </div>

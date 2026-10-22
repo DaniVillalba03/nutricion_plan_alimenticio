@@ -20,3 +20,11 @@ jobs:
       - run: npm test
       # Sin llaves de Supabase: el build usa el modo demostración y no necesita secretos
       - run: npx next build
+      # Flujo principal en un navegador real, en modo demostración (sin base de datos)
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-trace
+          path: test-results/

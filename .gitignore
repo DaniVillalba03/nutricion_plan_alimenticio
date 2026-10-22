@@ -46,3 +46,7 @@ next-env.d.ts
 # tokens de acceso locales (nunca al repositorio)
 token.env
 *.env
+
+# Playwright
+/test-results/
+/playwright-report/

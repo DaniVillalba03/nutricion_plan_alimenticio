@@ -2,17 +2,20 @@ import React, { Suspense } from 'react';
 import { Sidebar } from '@/components/layout/sidebar';
 import { PatientsProvider } from '@/components/patients/PatientsProvider';
 import { ToastProvider } from '@/components/ui/Toast';
-import { getDashboardDataAction } from '@/actions/nutrition-actions';
+import { getDashboardDataAction } from '@/actions/plans';
+import { getCatalogAction } from '@/actions/foods';
+import { CatalogProvider } from '@/components/catalog/CatalogProvider';
 
 /**
  * Carga pacientes y planes en el servidor, antes de enviar la pantalla, para que lleguen
  * con datos en lugar de pedirlos después desde el navegador (una cadena de esperas).
  */
 async function DashboardShell({ children }: { children: React.ReactNode }) {
-  const data = await getDashboardDataAction();
+  const [data, foods] = await Promise.all([getDashboardDataAction(), getCatalogAction()]);
 
   return (
     <PatientsProvider initialClients={data?.clients} initialPlans={data?.plans}>
+      <CatalogProvider initialFoods={foods}>
       <ToastProvider>
         <div className="min-h-screen flex flex-col lg:flex-row bg-background">
           {/* Sidebar fijo en desktop */}
@@ -25,6 +28,7 @@ async function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </ToastProvider>
+      </CatalogProvider>
     </PatientsProvider>
   );
 }

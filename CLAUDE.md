@@ -35,13 +35,13 @@ Para cambios visuales, además abre la pantalla en el navegador (claro y oscuro,
 |---|---|
 | Lógica de intercambios, totales, equivalentes | `src/core/exchange-engine.ts` |
 | Operaciones puras del plan (editar, versiones, plantillas) | `src/core/plan-operations.ts` |
-| Server actions (Supabase, tokens, portal) | `src/actions/nutrition-actions.ts` |
+| Server actions por dominio: `clients`, `plans`, `portal`, `foods` (+ `shared` con la sesión) | `src/actions/` |
 | Esquema, RLS y funciones SQL | `supabase/migrations/` |
 | Constructor de planes | `src/app/dashboard/page.tsx` + `src/components/planner/` |
 | Portal del paciente | `src/app/p/[token]/` |
 | Primitivas de UI | `src/components/ui/` |
 | Tokens de color, tipografía, impresión | `src/app/globals.css` |
-| Datos de ejemplo (grupos, alimentos) | `src/lib/mock-data.ts` (catálogo aún no está en Supabase) |
+| Catálogo de alimentos | Base de datos (`foods`); `src/lib/mock-data.ts` solo es respaldo/demo y define los grupos |
 | Guía de optimización de tokens | `docs/claude-code.md` |
 
 `CONTEXT.md` es el brief inicial (histórico): **no es convención** (p. ej. nunca se usó shadcn/ui).

@@ -69,6 +69,19 @@ export const ClientInputSchema = z.object({
   exclusions: z.array(z.string()).default([]),
 });
 
+const PlanItemInputSchema = z.object({
+  groupId: z.string().min(1),
+  subgroupId: z.string().nullish(),
+  exchangeCount: z.number().positive('Los intercambios deben ser mayores a 0'),
+  selectedFoodId: z.string().nullish(),
+});
+
+const PlanMealInputSchema = z.object({
+  name: z.string().min(1, 'Cada comida necesita un nombre'),
+  time: z.string().nullish(),
+  items: z.array(PlanItemInputSchema).default([]),
+});
+
 export const SavePlanInputSchema = z.object({
   id: z.string().optional(),
   clientId: z.string().min(1, 'El cliente es obligatorio'),
@@ -76,7 +89,7 @@ export const SavePlanInputSchema = z.object({
   notes: z.string().optional(),
   versionNumber: z.number().default(1.0),
   changeNote: z.string().optional(),
-  meals: z.array(z.any()),
+  meals: z.array(PlanMealInputSchema),
   shareToken: z.string().optional(),
   shareExpiresAt: z.string().optional().nullable(),
   isShareRevoked: z.boolean().optional(),

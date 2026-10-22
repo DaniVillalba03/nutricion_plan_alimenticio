@@ -12,7 +12,9 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const nextUrl = searchParams.get('next') || '/dashboard';
 
-  const [isSignUp, setIsSignUp] = useState(false);
+  // Las cuentas se crean por invitación (no hay registro abierto): solo ingresar o recuperar la contraseña
+  const [isForgot, setIsForgot] = useState(false);
+  const sessionExpired = searchParams.get('expired') === '1';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -41,24 +43,15 @@ function LoginForm() {
       try {
         const supabase = createClient();
 
-        if (isSignUp) {
-          const { error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                full_name: 'Lic. Laura Molinas',
-                license_number: '6020',
-                role: 'nutritionist',
-              },
-            },
+        if (isForgot) {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/auth/reset`,
           });
-
-          if (error) {
-            setErrorMsg(error.message);
+          // Misma respuesta exista o no la cuenta, para no revelar qué correos están registrados
+          if (error && error.status !== 400) {
+            setErrorMsg('No se pudo enviar el correo. Intenta de nuevo en unos minutos.');
           } else {
-            setSuccessMsg('¡Cuenta creada con éxito! Puedes iniciar sesión ahora.');
-            setIsSignUp(false);
+            setSuccessMsg('Si el correo está registrado, te enviamos un enlace para crear una contraseña nueva.');
           }
         } else {
           const { error } = await supabase.auth.signInWithPassword({
@@ -69,7 +62,7 @@ function LoginForm() {
           if (error) {
             setErrorMsg(
               error.message === 'Invalid login credentials'
-                ? 'Correo o contraseña incorrectos. Verifica tus credenciales de Supabase.'
+                ? 'Correo o contraseña incorrectos.'
                 : error.message
             );
           } else {
@@ -131,12 +124,18 @@ function LoginForm() {
         <div className="w-full max-w-sm">
           <Brand size="md" className="mb-10 lg:hidden" />
 
-          <h1 className="text-[40px]">{isSignUp ? 'Crea tu cuenta' : 'Bienvenida'}</h1>
+          <h1 className="text-[40px]">{isForgot ? 'Recupera tu acceso' : 'Bienvenida'}</h1>
           <p className="mt-2 text-[15px] text-muted">
-            {isSignUp
-              ? 'Registro profesional para nutricionistas.'
+            {isForgot
+              ? 'Escribe tu correo y te enviamos un enlace para crear una contraseña nueva.'
               : 'Ingresa con tu correo para ver a tus pacientes y sus planes.'}
           </p>
+
+          {sessionExpired && !errorMsg && (
+            <p role="status" className="mt-6 rounded-lg bg-surface-muted px-4 py-3 text-sm text-foreground">
+              Tu sesión venció. Ingresa de nuevo para continuar.
+            </p>
+          )}
 
           {errorMsg && (
             <p role="alert" className="mt-6 rounded-lg bg-danger-soft px-4 py-3 text-sm text-danger-soft-foreground">
@@ -164,37 +163,38 @@ function LoginForm() {
               )}
             </Field>
 
-            <Field label="Contraseña">
-              {(p) => (
-                <Input
-                  {...p}
-                  type="password"
-                  required
-                  autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              )}
-            </Field>
+            {!isForgot && (
+              <Field label="Contraseña">
+                {(p) => (
+                  <Input
+                    {...p}
+                    type="password"
+                    required
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                )}
+              </Field>
+            )}
 
             <Button type="submit" variant="primary" disabled={isPending} className="w-full">
-              {isPending ? 'Procesando…' : isSignUp ? 'Crear cuenta' : 'Ingresar'}
+              {isPending ? 'Procesando…' : isForgot ? 'Enviar enlace' : 'Ingresar'}
               {!isPending && <ArrowRight className="h-4 w-4" />}
             </Button>
           </form>
 
           <p className="mt-6 text-[15px] text-muted">
-            {isSignUp ? '¿Ya tienes cuenta? ' : '¿Todavía no tienes cuenta? '}
             <button
               type="button"
               onClick={() => {
-                setIsSignUp(!isSignUp);
+                setIsForgot(!isForgot);
                 setErrorMsg(null);
                 setSuccessMsg(null);
               }}
               className="font-medium text-foreground underline underline-offset-4 decoration-border-strong hover:decoration-foreground"
             >
-              {isSignUp ? 'Ingresa' : 'Crea una'}
+              {isForgot ? 'Volver a ingresar' : '¿Olvidaste tu contraseña?'}
             </button>
           </p>
 

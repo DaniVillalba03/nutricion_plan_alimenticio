@@ -2,15 +2,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, renderHook, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { Client } from '@/types/nutrition';
+import type { Client, MealPlan } from '@/types/nutrition';
 import { MOCK_CLIENTS } from '@/lib/mock-data';
 
 const getClientsAction = vi.fn();
 const createClientAction = vi.fn();
+const getLatestPlanAction = vi.fn();
 
 vi.mock('@/actions/nutrition-actions', () => ({
   getClientsAction: (...args: unknown[]) => getClientsAction(...args),
   createClientAction: (...args: unknown[]) => createClientAction(...args),
+  getLatestPlanAction: (...args: unknown[]) => getLatestPlanAction(...args),
 }));
 
 import { PatientsProvider, usePatients } from '../PatientsProvider';
@@ -38,6 +40,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => <PatientsProvid
 beforeEach(() => {
   getClientsAction.mockReset().mockResolvedValue({ success: true, data: MOCK_CLIENTS });
   createClientAction.mockReset();
+  getLatestPlanAction.mockReset().mockResolvedValue({ success: true });
 });
 
 describe('PatientsProvider', () => {
@@ -156,6 +159,127 @@ describe('PatientsProvider con Supabase configurado (sin acceso demo)', () => {
     const { result } = renderHook(() => usePatients(), { wrapper });
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.clients).toEqual([]);
+  });
+});
+
+const plan = (clientId: string, title = 'Plan guardado'): MealPlan => ({
+  id: `plan-${clientId}`,
+  clientId,
+  title,
+  createdAt: '2026-10-20',
+  updatedAt: '2026-10-22',
+  meals: [],
+});
+
+describe('PatientsProvider con datos iniciales del servidor', () => {
+  const two = [
+    { ...MOCK_CLIENTS[0], id: 'c-1', fullName: 'Ana' },
+    { ...MOCK_CLIENTS[1], id: 'c-2', fullName: 'Beto' },
+  ];
+  const withInitial = (plans: Record<string, MealPlan> = {}) => {
+    function Wrapper({ children }: { children: React.ReactNode }) {
+      return (
+        <PatientsProvider initialClients={two} initialPlans={plans}>
+          {children}
+        </PatientsProvider>
+      );
+    }
+    return Wrapper;
+  };
+
+  it('muestra los pacientes al instante, sin pedirlos de nuevo', () => {
+    const { result } = renderHook(() => usePatients(), { wrapper: withInitial() });
+
+    expect(result.current.clients).toEqual(two);
+    expect(result.current.loading).toBe(false);
+    expect(result.current.activeClient?.id).toBe('c-1');
+    expect(getClientsAction).not.toHaveBeenCalled();
+  });
+
+  it('con lista vacía del servidor no cae a datos de demostración', () => {
+    const empty = ({ children }: { children: React.ReactNode }) => (
+      <PatientsProvider initialClients={[]} initialPlans={{}}>
+        {children}
+      </PatientsProvider>
+    );
+    const { result } = renderHook(() => usePatients(), { wrapper: empty });
+
+    expect(result.current.clients).toEqual([]);
+    expect(result.current.activeClient).toBeNull();
+    expect(result.current.loading).toBe(false);
+  });
+
+  it('siembra la caché: plan guardado, sin plan (null) y nunca consultado (undefined)', () => {
+    const saved = plan('c-1');
+    const { result } = renderHook(() => usePatients(), { wrapper: withInitial({ 'c-1': saved }) });
+
+    expect(result.current.getCachedPlan('c-1')).toBe(saved);
+    expect(result.current.getCachedPlan('c-2')).toBeNull();
+    expect(result.current.getCachedPlan('otro')).toBeUndefined();
+  });
+
+  it('fetchPlan devuelve la caché reciente sin ir al servidor', async () => {
+    const saved = plan('c-1');
+    const { result } = renderHook(() => usePatients(), { wrapper: withInitial({ 'c-1': saved }) });
+
+    await expect(result.current.fetchPlan('c-1')).resolves.toBe(saved);
+    expect(getLatestPlanAction).not.toHaveBeenCalled();
+  });
+
+  it('fetchPlan pide al servidor lo que no está en caché y lo guarda', async () => {
+    const remote = plan('nuevo');
+    getLatestPlanAction.mockResolvedValue({ success: true, plan: remote });
+    const { result } = renderHook(() => usePatients(), { wrapper: withInitial() });
+
+    await expect(result.current.fetchPlan('nuevo')).resolves.toBe(remote);
+    expect(result.current.getCachedPlan('nuevo')).toBe(remote);
+
+    await result.current.fetchPlan('nuevo');
+    expect(getLatestPlanAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('fetchPlan comparte la misma petición si hay dos a la vez', async () => {
+    let resolve!: (v: unknown) => void;
+    getLatestPlanAction.mockReturnValue(new Promise((r) => (resolve = r)));
+    const { result } = renderHook(() => usePatients(), { wrapper: withInitial() });
+
+    const a = result.current.fetchPlan('x');
+    const b = result.current.fetchPlan('x');
+    resolve({ success: true, plan: undefined });
+
+    await expect(Promise.all([a, b])).resolves.toEqual([null, null]);
+    expect(getLatestPlanAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('fetchPlan propaga el error del servidor y no lo deja en caché', async () => {
+    getLatestPlanAction.mockResolvedValue({ success: false, error: 'sin conexión' });
+    const { result } = renderHook(() => usePatients(), { wrapper: withInitial() });
+
+    await expect(result.current.fetchPlan('x')).rejects.toThrow('sin conexión');
+    expect(result.current.getCachedPlan('x')).toBeUndefined();
+  });
+
+  it('cachePlan actualiza la caché (p. ej. tras guardar)', () => {
+    const { result } = renderHook(() => usePatients(), { wrapper: withInitial() });
+    const saved = plan('c-2', 'Recién guardado');
+
+    act(() => result.current.cachePlan('c-2', saved));
+
+    expect(result.current.getCachedPlan('c-2')).toBe(saved);
+  });
+
+  it('un paciente recién creado queda marcado como sin plan para no consultarlo', async () => {
+    const { client, input } = newClient();
+    const created = { ...client, id: 'db-1' };
+    createClientAction.mockResolvedValue({ success: true, data: { id: 'db-1', full_name: 'Juan Pérez' } });
+    getClientsAction.mockResolvedValue({ success: true, data: [...two, created] });
+    const { result } = renderHook(() => usePatients(), { wrapper: withInitial() });
+
+    await act(async () => {
+      await result.current.createClient(client, input);
+    });
+
+    expect(result.current.getCachedPlan('db-1')).toBeNull();
   });
 });
 

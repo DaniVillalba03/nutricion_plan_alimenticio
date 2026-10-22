@@ -44,10 +44,15 @@ async function getAuthenticatedUser() {
     };
   }
 
+  // getSession() lee la cookie sin ir a la red (getUser() es una llamada extra a Supabase Auth
+  // en cada acción). Aquí solo se usa para saber el id y el correo: la autorización real la
+  // hace RLS en la base, que verifica el JWT en cada consulta; y el middleware ya validó la
+  // sesión con getUser() en esta misma petición.
   const supabase = await createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user;
 
   if (!user) {
     return {
@@ -407,9 +412,7 @@ export async function getLatestPlanAction(
     const supabase = await createClient();
     const { data, error } = await supabase
       .from('meal_plans')
-      .select(
-        '*, plan_versions(*, plan_meals(*, plan_items(*)))'
-      )
+      .select(PLAN_SELECT)
       .eq('client_id', clientId)
       .eq('nutritionist_id', user.id)
       .order('updated_at', { ascending: false })
@@ -423,6 +426,49 @@ export async function getLatestPlanAction(
     return plan ? { success: true, plan } : { success: false, error: 'El plan guardado tiene un formato inesperado' };
   } catch (err: unknown) {
     return { success: false, error: err instanceof Error ? err.message : 'Error al cargar el plan' };
+  }
+}
+
+const PLAN_SELECT = '*, plan_versions(*, plan_meals(*, plan_items(*)))';
+
+/**
+ * Datos iniciales del panel en una sola pasada del servidor: pacientes y el último plan guardado
+ * de cada uno. Se llama desde el layout, de modo que la primera pantalla ya llega con datos.
+ */
+export async function getDashboardDataAction(): Promise<{
+  clients: Client[];
+  plans: Record<string, MealPlan>;
+} | null> {
+  const clientsRes = await getClientsAction();
+  if (!clientsRes.success) return null;
+
+  const clients = clientsRes.data;
+  const realIds = clients.map((c) => c.id).filter((id) => UUID_RE.test(id));
+  if (realIds.length === 0) return { clients, plans: {} };
+
+  const user = await getAuthenticatedUser();
+  if (user.isDemo) return { clients, plans: {} };
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('meal_plans')
+      .select(PLAN_SELECT)
+      .in('client_id', realIds)
+      .eq('nutritionist_id', user.id)
+      .order('updated_at', { ascending: false });
+
+    if (error || !data) return { clients, plans: {} };
+
+    const plans: Record<string, MealPlan> = {};
+    for (const row of data) {
+      const plan = mapStoredPlan(row);
+      // Vienen del más reciente al más antiguo: se conserva el primero de cada paciente
+      if (plan && !plans[plan.clientId]) plans[plan.clientId] = plan;
+    }
+    return { clients, plans };
+  } catch {
+    return { clients, plans: {} };
   }
 }
 

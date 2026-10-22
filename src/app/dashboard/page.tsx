@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   MOCK_EXCHANGE_GROUPS,
   MOCK_FOODS,
@@ -13,7 +13,7 @@ import { cloneDeep, newId } from '@/lib/utils';
 import { MEAL_TYPES } from '@/core/plan-operations';
 import { emptyPlanFor } from '@/core/stored-plan';
 import { isDemoAccessEnabled } from '@/lib/supabase/client';
-import { getLatestPlanAction, savePlanAction, updateShareSettingsAction } from '@/actions/nutrition-actions';
+import { savePlanAction, updateShareSettingsAction } from '@/actions/nutrition-actions';
 import { usePatients } from '@/components/patients/PatientsProvider';
 import { PatientSwitcher } from '@/components/patients/PatientSwitcher';
 import { NewPatientModal } from '@/components/patients/NewPatientModal';
@@ -67,23 +67,36 @@ function initialPlanFor(client: Client): MealPlan {
 
 /** Se monta con `key={paciente.id}`: al cambiar de paciente el constructor arranca de cero. */
 function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
-  const { clients, selectClient, updateClient, createClient } = usePatients();
+  const { clients, selectClient, updateClient, createClient, getCachedPlan, fetchPlan, cachePlan } = usePatients();
   const { toast } = useToast();
-  const [initialPlan] = useState<MealPlan>(() => initialPlanFor(activeClient));
+
+  // El plan guardado ya suele estar en caché (lo trajo el servidor con la pantalla): se muestra
+  // al instante y se revalida en segundo plano. Sin caché se muestra un esqueleto.
+  const cached = getCachedPlan(activeClient.id);
+  const [initialPlan] = useState<MealPlan>(() => cached ?? initialPlanFor(activeClient));
   const editor = usePlanEditor(initialPlan);
   const { plan, loadPlan } = editor;
-  const [planLoading, setPlanLoading] = useState(true);
+  const [planLoading, setPlanLoading] = useState(cached === undefined);
 
-  // Carga el último plan guardado de este paciente (si existe)
+  // El plan traído en segundo plano solo reemplaza al que se ve si la usuaria aún no lo tocó
+  const baselineRef = useRef<MealPlan>(initialPlan);
+  const planRef = useRef<MealPlan>(plan);
+  useEffect(() => {
+    planRef.current = plan;
+  });
+
   useEffect(() => {
     let cancelled = false;
-    getLatestPlanAction(activeClient.id)
-      .then((res) => {
-        if (!cancelled && res.success && res.plan) loadPlan(res.plan);
-        if (!cancelled && !res.success) toast(`No se pudo cargar el plan guardado: ${res.error}`);
+    fetchPlan(activeClient.id)
+      .then((fetched) => {
+        if (cancelled || !fetched) return;
+        if (planRef.current === baselineRef.current) {
+          baselineRef.current = fetched;
+          loadPlan(fetched);
+        }
       })
-      .catch(() => {
-        if (!cancelled) toast('No se pudo cargar el plan guardado. Revisa tu conexión.');
+      .catch((err: unknown) => {
+        if (!cancelled) toast(`No se pudo cargar el plan guardado: ${err instanceof Error ? err.message : 'error'}`);
       })
       .finally(() => {
         if (!cancelled) setPlanLoading(false);
@@ -91,7 +104,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
     return () => {
       cancelled = true;
     };
-  }, [activeClient.id, loadPlan, toast]);
+  }, [activeClient.id, fetchPlan, loadPlan, toast]);
 
   const [templates, setTemplates] = useState<PlanTemplate[]>(MOCK_PLAN_TEMPLATES);
   const [toolModal, setToolModal] = useState<ToolModal>(null);
@@ -209,6 +222,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
       if (res.success && 'planId' in res && res.planId && res.shareToken) {
         // Supabase asignó el id real y el token seguro del enlace del paciente
         editor.setPersisted(res.planId, res.shareToken, activeClient.id);
+        cachePlan(activeClient.id, { ...plan, id: res.planId, shareToken: res.shareToken, clientId: activeClient.id });
       }
       toast(res.success ? ('message' in res && res.message ? res.message : 'Plan guardado correctamente') : `No se pudo guardar: ${res.error}`);
     } catch {
@@ -427,7 +441,11 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
         <Card className="flex flex-col items-center gap-3 px-6 py-12 text-center">
           <Utensils className="h-8 w-8 text-subtle" />
           {planLoading ? (
-            <p className="text-sm text-muted">Cargando plan…</p>
+            <div className="w-full max-w-md space-y-3" aria-busy="true" aria-label="Cargando plan">
+              <div className="h-4 w-1/2 animate-pulse rounded bg-surface-muted" />
+              <div className="h-16 animate-pulse rounded-xl bg-surface-muted" />
+              <div className="h-16 animate-pulse rounded-xl bg-surface-muted" />
+            </div>
           ) : (
             <>
               <div>

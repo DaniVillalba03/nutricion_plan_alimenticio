@@ -3,25 +3,13 @@
 import React from 'react';
 import { MealPlanMeal, MealPlanItem, ExchangeGroup, Food } from '@/types/nutrition';
 import { formatFriendlyFraction } from '@/core/exchange-engine';
-import { Coffee, Cookie, Moon, Plus, Sun, Sunrise, Trash2, Utensils, X } from 'lucide-react';
+import { Plus, Trash2, X } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { Popover } from '@/components/ui/Popover';
 import { ExchangeStepper } from './ExchangeStepper';
+import { MEAL_ICONS, mealIconKey } from './meal-icons';
 
 const nf = new Intl.NumberFormat('es-PY', { maximumFractionDigits: 2 });
-
-const MEAL_ICONS = { sunrise: Sunrise, coffee: Coffee, sun: Sun, cookie: Cookie, moon: Moon, utensils: Utensils } as const;
-
-/** Icono según el momento del día de la comida. */
-function mealIconKey(name: string): keyof typeof MEAL_ICONS {
-  const n = name.toLowerCase();
-  if (n.includes('desayuno')) return 'sunrise';
-  if (n.includes('media') || n.includes('colaci')) return 'coffee';
-  if (n.includes('almuerzo')) return 'sun';
-  if (n.includes('merienda')) return 'cookie';
-  if (n.includes('cena') || n.includes('noct')) return 'moon';
-  return 'utensils';
-}
 
 interface MealCardProps {
   meal: MealPlanMeal;

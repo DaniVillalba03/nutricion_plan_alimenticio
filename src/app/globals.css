@@ -277,7 +277,26 @@ span[aria-hidden='true'][style*='background-color'] {
 /* Impresión: solo el documento del plan (portal con data-print-root). */
 @page {
   size: A4;
-  margin: 12mm;
+  margin: 12mm 12mm 17mm;
+
+  /* Pie con numeración en cada hoja (navegadores basados en Chromium recientes) */
+  @bottom-left {
+    content: 'NutriPlan PY · Plan de alimentación';
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 8pt;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #7d858e;
+  }
+
+  @bottom-right {
+    content: 'Pág. ' counter(page) ' de ' counter(pages);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 8pt;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #7d858e;
+  }
 }
 
 @media print {

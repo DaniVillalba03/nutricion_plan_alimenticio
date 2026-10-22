@@ -225,9 +225,9 @@ export function PlanPdfView({ isOpen, onClose, plan, client, exchangeGroups, all
               const MealIcon = MEAL_ICONS[mealIconKey(meal.name)];
 
               return (
-                <div key={meal.id} className="overflow-hidden rounded-[14px] border border-border bg-surface">
+                <div key={meal.id} className="rounded-[14px] border border-border bg-surface [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">
                   {/* Cabecera de la comida: icono, nombre, kcal y % del día */}
-                  <div className="break-after-avoid border-b border-border bg-surface-muted px-5 py-3.5">
+                  <div className="break-inside-avoid break-after-avoid rounded-t-[13px] border-b border-border bg-surface-muted px-5 py-3.5">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex min-w-0 items-center gap-3.5">
                         <span

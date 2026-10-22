@@ -300,7 +300,13 @@ span[aria-hidden='true'][style*='background-color'] {
 }
 
 @media print {
+  /* Aunque la app esté en oscuro, el papel es blanco: sin esto el lienzo y los márgenes salen negros */
   html,
+  html.dark {
+    color-scheme: light !important;
+    background: #fff !important;
+  }
+
   body {
     background: #fff !important;
   }

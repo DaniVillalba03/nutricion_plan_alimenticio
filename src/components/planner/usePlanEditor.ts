@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import type { MealPlan, PlanTemplate, PlanVersion } from '@/types/nutrition';
+import { newId } from '@/lib/utils';
 import {
   addDefaultMeal,
   addItemToMeal,
@@ -58,8 +59,14 @@ export function usePlanEditor(initialPlan: MealPlan) {
     setPlan((prev) => restoreVersionMeals(prev, version));
   }, []);
 
-  const assignToClient = useCallback((clientId: string, title: string, shareToken: string) => {
-    setPlan((prev) => ({ ...prev, clientId, title, shareToken }));
+  /** Pasa el plan a otro paciente como borrador nuevo (sin id ni token del plan original). */
+  const assignToClient = useCallback((clientId: string, title: string, shareToken?: string) => {
+    setPlan((prev) => ({ ...prev, id: newId('plan-draft'), clientId, title, shareToken }));
+  }, []);
+
+  /** Guarda el id y el token que asignó el servidor al persistir el plan. */
+  const setPersisted = useCallback((planId: string, shareToken: string, clientId: string) => {
+    setPlan((prev) => ({ ...prev, id: planId, shareToken, clientId }));
   }, []);
 
   const updateShareSettings = useCallback((isRevoked: boolean, expiresAt: string | null) => {
@@ -78,6 +85,7 @@ export function usePlanEditor(initialPlan: MealPlan) {
     saveNewVersion,
     restoreVersion,
     assignToClient,
+    setPersisted,
     updateShareSettings,
   };
 }

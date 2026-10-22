@@ -15,6 +15,20 @@ import {
 } from '@/lib/mock-data';
 import { Client, MealPlan } from '@/types/nutrition';
 import { revalidatePath } from 'next/cache';
+import { randomBytes } from 'node:crypto';
+import { mapSharedPlan } from '@/core/shared-plan';
+
+/** Token de acceso del portal: 32 bytes aleatorios (43 caracteres URL-safe). */
+function generateShareToken(): string {
+  return randomBytes(32).toString('base64url');
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Los datos y tokens de demostración solo existen sin Supabase o con el acceso demo habilitado. */
+function isDemoDataAllowed(): boolean {
+  return !isSupabaseConfigured() || process.env.NEXT_PUBLIC_ENABLE_DEMO_ACCESS === 'true';
+}
 
 /**
  * Helper para obtener el usuario autenticado actual o fallback demo
@@ -242,7 +256,7 @@ export async function savePlanAction(rawInput: unknown) {
 
     // 1. Guardar o actualizar plan en meal_plans
     let planId = planInput.id;
-    if (!planId || planId.startsWith('plan-demo')) {
+    if (!planId || !UUID_RE.test(planId)) {
       const { data: newPlan, error: planError } = await supabase
         .from('meal_plans')
         .insert({
@@ -259,7 +273,7 @@ export async function savePlanAction(rawInput: unknown) {
       }
       planId = newPlan.id;
     } else {
-      await supabase
+      const { error: updateError } = await supabase
         .from('meal_plans')
         .update({
           title: planInput.title,
@@ -268,24 +282,67 @@ export async function savePlanAction(rawInput: unknown) {
         })
         .eq('id', planId)
         .eq('nutritionist_id', user.id);
+      if (updateError) return { success: false, error: updateError.message };
     }
 
-    // 2. Registrar versión en plan_versions
-    const shareToken = planInput.shareToken || `token-${Math.random().toString(36).substring(2, 10)}`;
-    const { data: newVersion, error: versionError } = await supabase
+    // 2. Versión del plan. El token lo genera SIEMPRE el servidor (se ignora el del cliente):
+    //    es estable por plan, así que el enlace del paciente apunta siempre a la última versión.
+    const versionNumber = Math.round(planInput.versionNumber);
+    const { data: sameVersion } = await supabase
       .from('plan_versions')
-      .insert({
-        plan_id: planId,
-        version_number: Math.round(planInput.versionNumber),
-        is_active: !planInput.isShareRevoked,
-        share_token: shareToken,
-        share_expires_at: planInput.shareExpiresAt || null,
-      })
-      .select()
-      .single();
+      .select('id, share_token')
+      .eq('plan_id', planId)
+      .eq('version_number', versionNumber)
+      .maybeSingle();
 
-    if (versionError || !newVersion) {
-      return { success: false, error: versionError?.message || 'Error al crear versión' };
+    let versionId: string;
+    let shareToken: string;
+
+    if (sameVersion) {
+      shareToken = sameVersion.share_token || generateShareToken();
+      versionId = sameVersion.id;
+      const { error: versionError } = await supabase
+        .from('plan_versions')
+        .update({
+          is_active: !planInput.isShareRevoked,
+          share_token: shareToken,
+          share_expires_at: planInput.shareExpiresAt || null,
+        })
+        .eq('id', versionId);
+      if (versionError) return { success: false, error: versionError.message };
+      await supabase.from('plan_meals').delete().eq('plan_version_id', versionId);
+    } else {
+      const { data: previous } = await supabase
+        .from('plan_versions')
+        .select('id, share_token')
+        .eq('plan_id', planId)
+        .not('share_token', 'is', null)
+        .order('version_number', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      shareToken = previous?.share_token || generateShareToken();
+      if (previous) {
+        // El token pasa a la nueva versión; la anterior queda archivada (UNIQUE en share_token)
+        await supabase.from('plan_versions').update({ share_token: null, is_active: false }).eq('id', previous.id);
+      }
+
+      const { data: newVersion, error: versionError } = await supabase
+        .from('plan_versions')
+        .insert({
+          plan_id: planId,
+          version_number: versionNumber,
+          is_active: !planInput.isShareRevoked,
+          share_token: shareToken,
+          share_expires_at: planInput.shareExpiresAt || null,
+        })
+        .select()
+        .single();
+
+      if (versionError || !newVersion) {
+        return { success: false, error: versionError?.message || 'Error al crear versión' };
+      }
+      versionId = newVersion.id;
     }
 
     // 3. Registrar comidas e ítems
@@ -294,7 +351,7 @@ export async function savePlanAction(rawInput: unknown) {
       const { data: dbMeal } = await supabase
         .from('plan_meals')
         .insert({
-          plan_version_id: newVersion.id,
+          plan_version_id: versionId,
           name: meal.name,
           time: meal.time ? `${meal.time}:00` : null,
           order_index: mIdx,
@@ -320,7 +377,7 @@ export async function savePlanAction(rawInput: unknown) {
     return {
       success: true,
       planId,
-      versionId: newVersion.id,
+      versionId,
       shareToken,
     };
   } catch (err: unknown) {
@@ -340,88 +397,57 @@ export async function getPatientPlanByTokenAction(token: string): Promise<{
   plan?: MealPlan;
   error?: string;
 }> {
-  // Verificación rápida en datos demo para tokens locales
-  const mockClient = MOCK_CLIENTS.find((c) => c.shareToken === token || c.id === token);
-  if (mockClient) {
-    if (mockClient.isShareRevoked) {
-      return { success: false, isRevokedOrExpired: true };
+  // Datos de demostración: solo sin Supabase o con el acceso demo habilitado expresamente
+  if (isDemoDataAllowed()) {
+    const mockClient = MOCK_CLIENTS.find((c) => c.shareToken === token || c.id === token);
+    if (mockClient) {
+      if (mockClient.isShareRevoked) return { success: false, isRevokedOrExpired: true };
+      return { success: true, client: mockClient, plan: MOCK_INITIAL_PLAN };
     }
-    return {
-      success: true,
-      client: mockClient,
-      plan: MOCK_INITIAL_PLAN,
-    };
   }
 
-  const configured = isSupabaseConfigured();
-  if (!configured) {
+  if (!isSupabaseConfigured() || typeof token !== 'string' || token.length < 32 || token.length > 100) {
     return { success: false, isRevokedOrExpired: true };
   }
 
   try {
+    // Función de Postgres (SECURITY DEFINER): devuelve solo el plan de este token, o null
     const supabase = await createClient();
+    const { data, error } = await supabase.rpc('get_shared_plan', { p_token: token });
+    if (error || !data) return { success: false, isRevokedOrExpired: true };
 
-    // Consultar la versión del plan por share_token
-    const { data: version, error } = await supabase
-      .from('plan_versions')
-      .select('*, meal_plans(*, clients(*))')
-      .eq('share_token', token)
-      .single();
-
-    if (error || !version || !version.is_active) {
-      return { success: false, isRevokedOrExpired: true };
-    }
-
-    // Verificar si expiró
-    if (version.share_expires_at) {
-      const expires = new Date(version.share_expires_at).getTime();
-      if (Date.now() > expires) {
-        return { success: false, isRevokedOrExpired: true };
-      }
-    }
-
-    const dbClient = version.meal_plans?.clients;
-    if (!dbClient) {
-      return { success: false, isRevokedOrExpired: true };
-    }
-
-    const targetKcal = Number(dbClient.target_kcal) || 1600;
-    const choG = Number(dbClient.target_cho_g) || 180;
-    const proG = Number(dbClient.target_pro_g) || 85;
-    const lipG = Number(dbClient.target_lip_g) || 50;
-
-    // Mapear cliente
-    const client: Client = {
-      id: dbClient.id,
-      fullName: dbClient.full_name,
-      email: dbClient.email || undefined,
-      phone: dbClient.phone || undefined,
-      age: dbClient.age || 30,
-      gender: dbClient.gender || 'femenino',
-      weightKg: Number(dbClient.weight_kg) || 60,
-      heightCm: Number(dbClient.height_cm) || 165,
-      targetCalories: targetKcal,
-      targetMacros: {
-        carbohydrates: choG,
-        proteins: proG,
-        lipids: lipG,
-      },
-      macroDistributionPct: {
-        carbohydrates: Math.round(((choG * 4) / targetKcal) * 100) || 50,
-        proteins: Math.round(((proG * 4) / targetKcal) * 100) || 20,
-        lipids: Math.round(((lipG * 9) / targetKcal) * 100) || 30,
-      },
-      exclusions: [],
-      shareToken: version.share_token,
-    };
-
-    return {
-      success: true,
-      client,
-      plan: MOCK_INITIAL_PLAN,
-    };
+    const shared = mapSharedPlan(data, token);
+    if (!shared) return { success: false, isRevokedOrExpired: true };
+    return { success: true, client: shared.client, plan: shared.plan };
   } catch {
     return { success: false, isRevokedOrExpired: true };
+  }
+}
+
+/** Revoca o reactiva el enlace del paciente y fija su vencimiento (solo el dueño del plan, por RLS). */
+export async function updateShareSettingsAction(
+  planId: string,
+  isRevoked: boolean,
+  expiresAt: string | null
+): Promise<{ success: boolean; error?: string }> {
+  if (!UUID_RE.test(planId)) {
+    // Plan aún no guardado en la base: no hay enlace que actualizar
+    return { success: true };
+  }
+  const user = await getAuthenticatedUser();
+  if (user.isDemo) return { success: true };
+
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from('plan_versions')
+      .update({ is_active: !isRevoked, share_expires_at: expiresAt })
+      .eq('plan_id', planId)
+      .not('share_token', 'is', null);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : 'Error al actualizar el enlace' };
   }
 }
 

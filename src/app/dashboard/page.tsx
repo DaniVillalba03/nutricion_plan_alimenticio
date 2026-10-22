@@ -10,7 +10,8 @@ import {
 import { MealPlanItem, ExchangeGroup, PlanTemplate, PlanVersion } from '@/types/nutrition';
 import { calculatePlanTotals } from '@/core/exchange-engine';
 import { cloneDeep, newId } from '@/lib/utils';
-import { savePlanAction } from '@/actions/nutrition-actions';
+import { isDemoAccessEnabled } from '@/lib/supabase/client';
+import { savePlanAction, updateShareSettingsAction } from '@/actions/nutrition-actions';
 import { usePatients } from '@/components/patients/PatientsProvider';
 import { PatientSwitcher } from '@/components/patients/PatientSwitcher';
 import { NewPatientModal } from '@/components/patients/NewPatientModal';
@@ -122,7 +123,7 @@ export default function MealPlannerPage() {
     editor.assignToClient(
       target.id,
       `Plan para ${target.fullName} (Copia)`,
-      target.shareToken || `token-${target.id}`
+      isDemoAccessEnabled() ? target.shareToken : undefined
     );
     closeTool();
     toast(`Plan duplicado con éxito para ${target.fullName}`);
@@ -143,29 +144,42 @@ export default function MealPlannerPage() {
   const handleSavePlan = async () => {
     try {
       const res = await savePlanAction({
-        id: plan.id,
+        // Solo se actualiza el plan si pertenece a este paciente; si no, se crea uno nuevo
+        id: plan.clientId === activeClient.id ? plan.id : undefined,
         clientId: activeClient.id,
         title: plan.title,
         notes: plan.notes,
         versionNumber: currentVersion,
         meals: plan.meals,
-        shareToken: activeClient.shareToken,
         shareExpiresAt: plan.shareExpiresAt ?? null,
         isShareRevoked: plan.isShareRevoked,
       });
+      if (res.success && 'planId' in res && res.planId && res.shareToken) {
+        // Supabase asignó el id real y el token seguro del enlace del paciente
+        editor.setPersisted(res.planId, res.shareToken, activeClient.id);
+      }
       toast(res.success ? ('message' in res && res.message ? res.message : 'Plan guardado correctamente') : `No se pudo guardar: ${res.error}`);
     } catch {
       toast('No se pudo guardar el plan. Revisa tu conexión.');
     }
   };
 
-  const handleUpdateShareSettings = (isRevoked: boolean, expiresAt: string | null) => {
+  const handleUpdateShareSettings = async (isRevoked: boolean, expiresAt: string | null) => {
     editor.updateShareSettings(isRevoked, expiresAt);
     updateClient(activeClient.id, { isShareRevoked: isRevoked, shareExpiresAt: expiresAt || undefined });
+    let persisted = true;
+    try {
+      const res = await updateShareSettingsAction(plan.clientId === activeClient.id ? plan.id : '', isRevoked, expiresAt);
+      persisted = res.success;
+    } catch {
+      persisted = false;
+    }
     toast(
-      isRevoked
-        ? 'Enlace al portal del paciente REVOCADO'
-        : 'Configuración de acceso compartible actualizada'
+      !persisted
+        ? 'No se pudo actualizar el enlace en el servidor. Reintenta.'
+        : isRevoked
+          ? 'Enlace al portal del paciente REVOCADO'
+          : 'Configuración de acceso compartible actualizada'
     );
   };
 

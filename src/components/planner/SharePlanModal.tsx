@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Client, MealPlan } from '@/types/nutrition';
 import { Copy, Check, ExternalLink, ShieldAlert, ShieldCheck, Calendar } from 'lucide-react';
+import { isDemoAccessEnabled } from '@/lib/supabase/client';
 import { Modal, Button, Input, buttonClasses } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
@@ -27,7 +28,9 @@ export function SharePlanModal({ isOpen, onClose, client, plan, onUpdateShareSet
   const [expiryOption, setExpiryOption] = useState<ExpiryOption>('30');
   const [isRevoked, setIsRevoked] = useState(client.isShareRevoked || false);
 
-  const token = client.shareToken || plan.shareToken || 'maria-elena-2026';
+  // El token seguro lo asigna el servidor al guardar el plan; sin él el enlace aún no existe
+  const token = (plan.clientId === client.id ? plan.shareToken : undefined) || client.shareToken || '';
+  const needsSave = !isDemoAccessEnabled() && token.length < 32;
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
   const shareUrl = `${baseUrl}/p/${token}`;
 
@@ -77,13 +80,19 @@ export function SharePlanModal({ isOpen, onClose, client, plan, onUpdateShareSet
           </Button>
         </div>
 
+        {needsSave && (
+          <p role="alert" className="rounded-xl bg-warning-soft p-3 text-xs text-warning-soft-foreground">
+            Guarda el plan (menú «Más» → «Guardar plan») para generar el enlace seguro del paciente.
+          </p>
+        )}
+
         <div className="space-y-1.5">
           <label htmlFor="share-url" className="block text-xs font-semibold text-foreground">
             Enlace único del paciente
           </label>
           <div className="flex items-center gap-2">
-            <Input id="share-url" readOnly value={shareUrl} className="flex-1 select-all font-mono text-xs" />
-            <Button variant="accent" onClick={handleCopy} disabled={isRevoked} className="shrink-0">
+            <Input id="share-url" readOnly value={needsSave ? '' : shareUrl} className="flex-1 select-all font-mono text-xs" />
+            <Button variant="accent" onClick={handleCopy} disabled={isRevoked || needsSave} className="shrink-0">
               {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               {copied ? 'Copiado' : 'Copiar'}
             </Button>
@@ -115,10 +124,11 @@ export function SharePlanModal({ isOpen, onClose, client, plan, onUpdateShareSet
         </fieldset>
 
         <a
-          href={`/p/${token}`}
+          href={needsSave ? undefined : `/p/${token}`}
+          aria-disabled={needsSave}
           target="_blank"
           rel="noopener noreferrer"
-          className={cn(buttonClasses('primary', 'md'), 'w-full')}
+          className={cn(buttonClasses('primary', 'md'), 'w-full', needsSave && 'pointer-events-none opacity-50')}
         >
           <ExternalLink className="h-4 w-4" />
           Abrir vista móvil del paciente

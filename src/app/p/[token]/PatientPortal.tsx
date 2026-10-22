@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { MOCK_EXCHANGE_GROUPS, MOCK_FOODS } from '@/lib/mock-data';
 import { Client, Food, MealPlan, MealPlanMeal, MealPlanItem, ExchangeGroup } from '@/types/nutrition';
 import { formatFriendlyFraction, getFoodEquivalents } from '@/core/exchange-engine';
+import { applyProgress, dayKey, parseProgress, toProgress } from '@/core/portal-progress';
 import { ArrowLeftRight, CheckCircle2, Circle, Search, ShieldAlert, Utensils } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { Brand } from '@/components/layout/Brand';
@@ -31,6 +32,31 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
   const [patientMeals, setPatientMeals] = useState<MealPlanMeal[]>(() =>
     plan.meals.map((m) => ({ ...m, isCompleted: false }))
   );
+
+  // El avance se guarda en este dispositivo (el portal es anónimo): se recupera al abrir y se
+  // vuelve a guardar en cada cambio. Hasta recuperarlo no se escribe, para no pisar lo guardado.
+  const storageKey = `nutriplan-portal:${plan.id}`;
+  const [progressLoaded, setProgressLoaded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = parseProgress(window.localStorage.getItem(storageKey), dayKey(new Date()));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage solo existe en el navegador
+      setPatientMeals(applyProgress(plan.meals.map((m) => ({ ...m, isCompleted: false })), saved));
+    } catch {
+      // Almacenamiento bloqueado (modo privado): el portal funciona igual, sin recordar el avance
+    }
+    setProgressLoaded(true);
+  }, [plan.meals, storageKey]);
+
+  useEffect(() => {
+    if (!progressLoaded) return;
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(toProgress(plan.meals, patientMeals, dayKey(new Date()))));
+    } catch {
+      // Sin almacenamiento: no se recuerda el avance
+    }
+  }, [patientMeals, progressLoaded, plan.meals, storageKey]);
 
   const [changeModal, setChangeModal] = useState<ChangeModalState>({
     isOpen: false,

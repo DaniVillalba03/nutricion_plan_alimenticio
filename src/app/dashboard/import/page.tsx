@@ -109,15 +109,15 @@ export default function FoodImportPage() {
       {summary && (
         <dl className="grid grid-cols-3 gap-6 border-y border-border py-6">
           <div>
-            <dd className="font-display text-4xl font-medium tabular-nums text-foreground">{summary.total}</dd>
+            <dd className="text-5xl font-bold tracking-[-0.045em] tabular-nums text-foreground">{summary.total}</dd>
             <dt className="mt-1 text-sm text-muted">Filas procesadas</dt>
           </div>
           <div>
-            <dd className="font-display text-4xl font-medium tabular-nums text-primary">{summary.approved}</dd>
+            <dd className="text-5xl font-bold tracking-[-0.045em] tabular-nums text-primary-text">{summary.approved}</dd>
             <dt className="mt-1 text-sm text-muted">Aprobadas automáticamente</dt>
           </div>
           <div>
-            <dd className="font-display text-4xl font-medium tabular-nums text-warning">{summary.review}</dd>
+            <dd className="text-5xl font-bold tracking-[-0.045em] tabular-nums text-warning">{summary.review}</dd>
             <dt className="mt-1 text-sm text-muted">Requieren revisión</dt>
           </div>
         </dl>
@@ -139,13 +139,13 @@ export default function FoodImportPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-left">
                 <thead>
-                  <tr className="border-b border-border text-[13px] text-muted">
-                    <th scope="col" className="px-5 py-3 font-medium">Alimento</th>
-                    <th scope="col" className="px-3 py-3 font-medium">Por 100 g</th>
-                    <th scope="col" className="px-3 py-3 font-medium">Atwater</th>
-                    <th scope="col" className="px-3 py-3 font-medium">Grupo sugerido</th>
-                    <th scope="col" className="px-3 py-3 font-medium">1 intercambio</th>
-                    <th scope="col" className="px-5 py-3 font-medium">Estado</th>
+                  <tr className="border-b border-border bg-surface-muted/60 mono-label text-subtle">
+                    <th scope="col" className="px-5 py-3.5 font-medium">Alimento</th>
+                    <th scope="col" className="px-3 py-3.5 font-medium">Por 100 g</th>
+                    <th scope="col" className="px-3 py-3.5 font-medium">Atwater</th>
+                    <th scope="col" className="px-3 py-3.5 font-medium">Grupo sugerido</th>
+                    <th scope="col" className="px-3 py-3.5 font-medium">1 intercambio</th>
+                    <th scope="col" className="px-5 py-3.5 font-medium">Estado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -163,7 +163,7 @@ export default function FoodImportPage() {
                       </td>
                       <td className="px-3 py-3.5 text-[15px] tabular-nums">
                         <p className="text-foreground">{row.atwater.calculatedCalories} kcal</p>
-                        <p className={row.atwater.isValid ? 'text-[13px] text-primary' : 'text-[13px] text-warning'}>
+                        <p className={row.atwater.isValid ? 'text-[13px] text-primary-text' : 'text-[13px] text-warning'}>
                           Δ {row.atwater.diffPercent}%
                         </p>
                       </td>

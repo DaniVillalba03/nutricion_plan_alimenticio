@@ -32,7 +32,7 @@ export default function ClientsPage() {
             <p className="text-[15px] text-muted">Cargando pacientes…</p>
           ) : (
             <>
-              <p className="font-display text-2xl font-medium text-foreground">Aún no hay pacientes</p>
+              <p className="text-2xl font-bold tracking-[-0.035em] text-foreground">Aún no hay pacientes</p>
               <p className="mx-auto mt-1.5 max-w-sm text-[15px] text-muted">
                 Crea el primero para empezar a armar su plan de intercambios.
               </p>

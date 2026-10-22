@@ -147,7 +147,7 @@ export function FoodCalculatorModal({ open, onClose, onCreate }: FoodCalculatorM
         </div>
 
         <div className="space-y-3 rounded-xl bg-surface-muted/60 p-4">
-          <h3 className="font-display text-lg font-medium text-foreground">Información nutricional por 100 g</h3>
+          <h3 className="text-lg font-bold tracking-[-0.03em] text-foreground">Información nutricional por 100 g</h3>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Field label="Kcal">
               {(p) => <Input {...p} type="number" min="0" step="1" value={form.kcal100g} onChange={num('kcal100g')} className="text-center font-semibold" />}

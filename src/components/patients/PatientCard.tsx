@@ -32,13 +32,13 @@ export function PatientCard({ client, onOpenPlan }: PatientCardProps) {
     <li className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
       <div className="flex min-w-0 items-start gap-4">
         <span
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border-strong bg-surface-muted text-sm font-semibold text-foreground"
+          className="mono-label flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary-soft-foreground"
           aria-hidden="true"
         >
           {initials}
         </span>
         <div className="min-w-0">
-        <h3 className="font-display text-xl font-medium text-foreground">{client.fullName}</h3>
+        <h3 className="text-xl font-bold tracking-[-0.03em] text-foreground">{client.fullName}</h3>
         <p className="mt-0.5 text-sm text-muted">{details.join(' · ')}</p>
         {client.activityLevel && <p className="mt-0.5 text-sm text-muted">{client.activityLevel}</p>}
         {client.exclusions.length > 0 && (

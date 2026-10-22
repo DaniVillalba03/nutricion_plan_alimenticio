@@ -4,8 +4,9 @@ import { cn } from '@/lib/utils';
 export type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'icon';
 
+// Botones en píldora. El primario es verde vivo con texto oscuro (no blanco).
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-accent text-accent-foreground hover:bg-accent-hover',
+  primary: 'bg-primary text-primary-foreground hover:bg-primary-hover',
   accent: 'bg-accent text-accent-foreground hover:bg-accent-hover',
   secondary: 'bg-surface text-foreground border border-border-strong hover:bg-surface-muted',
   ghost: 'text-muted hover:bg-surface-muted hover:text-foreground',
@@ -13,9 +14,9 @@ const VARIANTS: Record<ButtonVariant, string> = {
 };
 
 const SIZES: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-[13px] gap-1.5',
-  md: 'h-10 px-4 text-sm gap-2',
-  icon: 'h-8 w-8',
+  sm: 'h-8 px-3.5 text-[13px] gap-1.5',
+  md: 'h-10 px-5 text-sm gap-2',
+  icon: 'h-9 w-9',
 };
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -25,7 +26,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 export function buttonClasses(variant: ButtonVariant = 'secondary', size: ButtonSize = 'md') {
   return cn(
-    'inline-flex items-center justify-center rounded-lg font-medium whitespace-nowrap transition-colors',
+    'inline-flex items-center justify-center rounded-full font-semibold whitespace-nowrap transition-colors',
     'disabled:opacity-45 disabled:pointer-events-none',
     VARIANTS[variant],
     SIZES[size]

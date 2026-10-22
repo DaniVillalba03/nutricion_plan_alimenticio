@@ -29,7 +29,7 @@ import {
   VersionHistoryModal,
 } from '@/components/planner/PlanModals';
 import { usePlanEditor } from '@/components/planner/usePlanEditor';
-import { Button, Card, buttonClasses, useToast } from '@/components/ui';
+import { Button, Card, Eyebrow, buttonClasses, useToast } from '@/components/ui';
 import { Popover, MenuItem } from '@/components/ui/Popover';
 import {
   Plus,
@@ -55,29 +55,30 @@ interface ActiveModalState {
   selectedFoodId?: string;
 }
 
-/** Celda de la tira de datos clínicos del paciente. */
+/** Tarjeta de dato clínico: etiqueta mono, cifra grande y unidad pequeña. */
 function RecordCell({
   label,
   value,
+  unit,
   hint,
   dot,
-  className,
 }: {
   label: string;
   value: string;
+  unit?: string;
   hint?: string;
   dot?: string;
-  className?: string;
 }) {
   return (
-    <div className={`px-5 py-3.5 ${className ?? ''}`}>
-      <dt className="flex items-center gap-1.5 text-[13px] text-muted">
-        {dot && <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden="true" />}
+    <div className="rounded-[14px] border border-border bg-surface px-4 py-3.5">
+      <dt className="mono-label flex items-center gap-1.5 text-subtle">
+        {dot && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} aria-hidden="true" />}
         {label}
       </dt>
-      <dd className="mt-0.5 tabular-nums text-foreground">
-        <span className="text-[17px] font-medium">{value}</span>
-        {hint && <span className="ml-1.5 text-[13px] text-muted">{hint}</span>}
+      <dd className="mt-2 flex items-baseline gap-1.5 tabular-nums">
+        <span className="text-[30px] font-bold leading-none tracking-[-0.04em] text-foreground">{value}</span>
+        {unit && <span className="text-sm text-muted">{unit}</span>}
+        {hint && <span className="mono-label ml-auto text-subtle">{hint}</span>}
       </dd>
     </div>
   );
@@ -279,9 +280,8 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
 
   return (
     <div>
-      <header className="overflow-hidden rounded-xl border border-border bg-surface shadow-[0_1px_2px_rgb(15_15_25/0.05)] dark:shadow-none">
-        <div className="p-6">
-        <p className="mb-2 text-[13px] font-medium text-muted">Constructor de planes</p>
+      <header>
+        <Eyebrow className="mb-3">Constructor de planes</Eyebrow>
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
             <PatientSwitcher
@@ -295,13 +295,13 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
                 {restrictions.map((r) => (
                   <span
                     key={r}
-                    className="inline-flex items-center rounded-md border border-danger/30 bg-danger-soft px-2 py-0.5 text-[13px] font-medium text-danger-soft-foreground"
+                    className="mono-label inline-flex items-center rounded-full bg-danger-soft px-2.5 py-1 text-danger-soft-foreground"
                   >
                     Sin {r.toLowerCase()}
                   </span>
                 ))}
                 {activeClient.isShareRevoked && (
-                  <span className="inline-flex items-center rounded-md border border-border-strong px-2 py-0.5 text-[13px] text-muted">
+                  <span className="mono-label inline-flex items-center rounded-full border border-border-strong px-2.5 py-1 text-muted">
                     Enlace revocado
                   </span>
                 )}
@@ -416,48 +416,52 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
           </div>
         </div>
 
-        </div>
 
-        <dl className="grid grid-cols-2 divide-x divide-y divide-border border-t border-border bg-surface-muted/40 sm:grid-cols-5 sm:divide-y-0">
-          <RecordCell label="Edad" value={`${activeClient.age} años`} />
-          <RecordCell label="Meta calórica" value={`${activeClient.targetCalories.toLocaleString('es-PY')} kcal`} />
+        <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <RecordCell label="Edad" value={`${activeClient.age}`} unit="años" />
+          <RecordCell label="Meta" value={activeClient.targetCalories.toLocaleString('es-PY')} unit="kcal" />
           <RecordCell
             label="Carbohidratos"
             dot="bg-macro-cho"
-            value={`${activeClient.targetMacros.carbohydrates} g`}
+            value={`${activeClient.targetMacros.carbohydrates}`}
+            unit="g"
             hint={`${activeClient.macroDistributionPct.carbohydrates}%`}
           />
           <RecordCell
             label="Proteínas"
             dot="bg-macro-pro"
-            value={`${activeClient.targetMacros.proteins} g`}
+            value={`${activeClient.targetMacros.proteins}`}
+            unit="g"
             hint={`${activeClient.macroDistributionPct.proteins}%`}
           />
-          <RecordCell
-            label="Lípidos"
-            dot="bg-macro-lip"
-            value={`${activeClient.targetMacros.lipids} g`}
-            hint={`${activeClient.macroDistributionPct.lipids}%`}
-            className="col-span-2 sm:col-span-1"
-          />
+          <div className="col-span-2 sm:col-span-1">
+            <RecordCell
+              label="Lípidos"
+              dot="bg-macro-lip"
+              value={`${activeClient.targetMacros.lipids}`}
+              unit="g"
+              hint={`${activeClient.macroDistributionPct.lipids}%`}
+            />
+          </div>
         </dl>
 
-        <div className="flex items-center justify-between border-t border-border px-6 py-2.5 text-[13px] text-muted">
-          <span>Plan versión {currentVersion.toFixed(1)}</span>
+        <p className="mono-label mt-4 flex items-center gap-3 text-subtle">
+          <span>Plan v{currentVersion.toFixed(1)}</span>
+          <span aria-hidden="true">·</span>
           <button
             type="button"
             onClick={() => setToolModal('history')}
-            className="font-medium text-foreground underline decoration-border-strong underline-offset-4 transition-colors hover:decoration-foreground"
+            className="underline decoration-border-strong underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground"
           >
             Ver historial
           </button>
-        </div>
+        </p>
       </header>
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-14">
+      <div className="mt-12 grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12">
         <section aria-label="Comidas del plan" className="min-w-0 lg:order-first">
           <div className="mb-5 flex items-center justify-between gap-3">
-            <h2 className="text-2xl font-medium text-foreground">Comidas del día</h2>
+            <h2 className="text-[28px] font-bold text-foreground">Comidas del día</h2>
             <Popover
               panelClassName="w-60"
               triggerClassName={buttonClasses('secondary', 'sm')}
@@ -497,7 +501,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
                 </div>
               ) : (
                 <>
-                  <p className="font-display text-2xl font-medium text-foreground">Este plan está vacío</p>
+                  <p className="text-2xl font-bold tracking-[-0.035em] text-foreground">Este plan está vacío</p>
                   <p className="mx-auto mt-1.5 max-w-sm text-[15px] text-muted">
                     Empieza con la estructura básica del día o añade las comidas una por una.
                   </p>
@@ -517,9 +521,10 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
             </div>
           ) : (
             <div className="space-y-6">
-              {plan.meals.map((meal) => (
+              {plan.meals.map((meal, mealIndex) => (
                 <MealCard
                   key={meal.id}
+                  index={mealIndex}
                   meal={meal}
                   exchangeGroups={MOCK_EXCHANGE_GROUPS}
                   allFoods={MOCK_FOODS}

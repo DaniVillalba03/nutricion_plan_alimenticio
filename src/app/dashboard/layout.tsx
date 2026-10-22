@@ -19,8 +19,9 @@ async function DashboardShell({ children }: { children: React.ReactNode }) {
           <Sidebar />
 
           {/* Contenido principal */}
-          <div className="flex-1 flex flex-col min-w-0 lg:pl-[240px]">
-            <main className="mx-auto w-full max-w-[1120px] flex-1 px-5 pb-24 pt-8 sm:px-8 lg:px-12 lg:pt-12">{children}</main>
+          <div className="relative flex min-w-0 flex-1 flex-col lg:pl-[264px]">
+            <div className="bg-hero pointer-events-none absolute inset-x-0 top-0 h-[460px] lg:left-[264px]" aria-hidden="true" />
+            <main className="relative mx-auto w-full max-w-[1120px] flex-1 px-5 pb-24 pt-8 sm:px-8 lg:px-12 lg:pt-12">{children}</main>
           </div>
         </div>
       </ToastProvider>
@@ -32,8 +33,8 @@ async function DashboardShell({ children }: { children: React.ReactNode }) {
 function ShellSkeleton() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-background" aria-busy="true" aria-label="Cargando">
-      <div className="hidden lg:block fixed inset-y-0 left-0 w-[240px] border-r border-border bg-background" />
-      <div className="flex-1 lg:pl-[240px]">
+      <div className="hidden lg:block fixed inset-y-0 left-0 w-[264px] border-r border-border bg-background" />
+      <div className="flex-1 lg:pl-[264px]">
         <div className="mx-auto w-full max-w-[1120px] space-y-6 px-5 pt-12 sm:px-8 lg:px-12">
           <div className="h-3 w-40 animate-pulse rounded bg-surface-muted" />
           <div className="h-10 w-2/3 animate-pulse rounded bg-surface-muted" />

@@ -103,12 +103,13 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
       </header>
 
       <main className="mx-auto w-full max-w-lg flex-1 px-5 pb-20 pt-8">
-        <h1 className="text-[38px] font-medium leading-[1.1]">Hola, {firstName(client.fullName)}</h1>
-        <p className="mt-2 text-[15px] text-muted">Este es tu plan de alimentación.</p>
+        <p className="mono-label mb-3 flex items-center gap-2 text-subtle"><span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />Tu plan de hoy</p>
+        <h1 className="text-[44px]">Hola, <span className="text-primary-text">{firstName(client.fullName)}</span></h1>
+        <p className="mt-3 text-base text-muted">Elige entre los alimentos equivalentes cuando quieras variar.</p>
 
         <section
           aria-label="Tu meta de hoy"
-          className="mt-6 overflow-hidden rounded-xl border border-border bg-surface shadow-[0_1px_2px_rgb(15_15_25/0.05)] dark:shadow-none"
+          className="mt-7 overflow-hidden rounded-[14px] border border-border bg-surface"
         >
           <dl className="grid grid-cols-4 divide-x divide-border">
             <GoalCell label="Calorías" value={client.targetCalories.toLocaleString('es-PY')} unit="kcal" />
@@ -142,7 +143,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
               key={meal.id}
               aria-label={meal.name}
               className={cn(
-                'overflow-hidden rounded-xl border bg-surface shadow-[0_1px_2px_rgb(15_15_25/0.05)] transition-colors dark:shadow-none',
+                'overflow-hidden rounded-[14px] border bg-surface transition-colors',
                 meal.isCompleted ? 'border-primary/50' : 'border-border'
               )}
             >
@@ -155,8 +156,8 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                     <Utensils className="h-4 w-4" strokeWidth={1.6} />
                   </span>
                   <div>
-                    <h2 className="text-[22px] font-medium leading-tight">{meal.name}</h2>
-                    {meal.time && <p className="text-[13px] tabular-nums text-muted">{meal.time}</p>}
+                    <h2 className="text-[22px] font-bold leading-tight tracking-[-0.035em]">{meal.name}</h2>
+                    {meal.time && <p className="mono-label text-subtle">{meal.time}</p>}
                   </div>
                 </div>
                 <button
@@ -164,7 +165,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                   aria-pressed={!!meal.isCompleted}
                   onClick={() => toggleMealCompleted(meal.id)}
                   className={cn(
-                    'inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors',
+                    'inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors',
                     meal.isCompleted
                       ? 'border-primary bg-primary text-primary-foreground'
                       : 'border-border-strong bg-surface text-muted hover:bg-surface-muted hover:text-foreground'
@@ -206,7 +207,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                           />
                           {group.shortName} · {formatFriendlyFraction(item.exchangeCount)} int
                         </p>
-                        <p className="mt-1 text-lg font-medium leading-snug">{selectedFood?.name || 'Alimento a elección'}</p>
+                        <p className="mt-1 text-lg font-semibold leading-snug tracking-[-0.02em]">{selectedFood?.name || 'Alimento a elección'}</p>
                         <p className="mt-0.5 text-[15px] text-foreground">
                           <span className="font-medium">
                             {friendlyHouseholdQty} {selectedFood?.householdUnit}
@@ -218,7 +219,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                       <button
                         type="button"
                         onClick={() => handleOpenChange(meal.id, item)}
-                        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg border border-border-strong bg-surface px-3.5 text-sm font-medium transition-colors hover:bg-surface-muted active:scale-95"
+                        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-border-strong bg-surface px-4 text-sm font-semibold transition-colors hover:bg-surface-muted active:scale-95"
                       >
                         <ArrowLeftRight className="h-4 w-4 text-muted" />
                         Cambiar
@@ -231,8 +232,8 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
           ))}
         </div>
 
-        <div className="mt-12 rounded-xl border border-dashed border-border-strong px-6 py-6 text-center">
-          <p className="font-display text-xl font-medium italic leading-snug text-foreground">
+        <div className="mt-12 rounded-[14px] border border-dashed border-border-strong px-6 py-7 text-center">
+          <p className="text-xl font-semibold tracking-[-0.03em] leading-snug text-foreground">
             Un hábito que fue aprendido puede ser reeducado.
           </p>
           <p className="mt-2 text-[13px] text-muted">Lic. Laura Molinas · Reg. Prof. 6020</p>
@@ -282,7 +283,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                         <span className="block text-sm text-muted">{eq.formattedHousehold}</span>
                       </span>
                       {isCurrent ? (
-                        <span className="shrink-0 text-[13px] font-medium text-primary">Actual</span>
+                        <span className="shrink-0 text-[13px] font-medium text-primary-text">Actual</span>
                       ) : (
                         <span className="shrink-0 text-[13px] text-muted">Elegir</span>
                       )}
@@ -302,12 +303,12 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
 function GoalCell({ label, value, unit, dot }: { label: string; value: string; unit: string; dot?: string }) {
   return (
     <div className="px-2 py-3.5 text-center">
-      <dt className="flex items-center justify-center gap-1.5 text-[12px] text-muted">
+      <dt className="mono-label flex items-center justify-center gap-1.5 text-subtle">
         {dot && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} aria-hidden="true" />}
         {label}
       </dt>
       <dd className="mt-1 tabular-nums">
-        <span className="block font-display text-[24px] font-medium leading-none text-foreground">{value}</span>
+        <span className="block text-[26px] font-bold tracking-[-0.04em] leading-none text-foreground">{value}</span>
         <span className="mt-0.5 block text-[12px] text-muted">{unit}</span>
       </dd>
     </div>

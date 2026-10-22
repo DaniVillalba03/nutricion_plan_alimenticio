@@ -101,23 +101,38 @@ function LoginForm() {
 
   return (
     <div className="grid min-h-screen bg-background text-foreground lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      {/* Panel de marca: solo tipografía y una cita, sin ilustraciones genéricas */}
-      <aside className="hidden flex-col justify-between bg-[#0e0e10] p-12 text-[#f2f2f4] lg:flex">
-        <Brand size="md" onDark />
-        <blockquote className="max-w-md">
-          <p className="font-display text-[34px] font-medium italic leading-snug text-[#f2f2f4]">
-            Un hábito que fue aprendido puede ser reeducado.
+      {/* Panel de marca: verde casi negro con grilla y halo, como un cartel */}
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-[#06140a] p-12 text-[#eaf3ed] lg:flex">
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage:
+              'radial-gradient(60% 50% at 30% 100%, rgb(31 191 74 / 0.28), transparent 70%), linear-gradient(rgb(190 255 210 / 0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(190 255 210 / 0.06) 1px, transparent 1px)',
+            backgroundSize: '100% 100%, 44px 44px, 44px 44px',
+          }}
+          aria-hidden="true"
+        />
+        <Brand size="md" onDark className="relative" />
+        <div className="relative max-w-lg">
+          <p className="mono-label mb-5 flex items-center gap-2 text-[#9db0a2]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#2ad15a]" aria-hidden="true" />
+            Nutrición por intercambios
           </p>
-          <footer className="mt-5 text-[15px] text-[#a1a1ab]">Lic. Laura Molinas · Reg. Prof. 6020</footer>
-        </blockquote>
-        <p className="text-[13px] text-[#a1a1ab]">Planificación por intercambios con alimentos de Paraguay</p>
+          <h2 className="text-[52px] font-bold leading-[1.02] tracking-[-0.045em]">
+            Planes claros, con alimentos de <span className="text-[#2ad15a]">Paraguay</span>.
+          </h2>
+          <p className="mt-6 max-w-md text-base text-[#9db0a2]">
+            Arma el plan de cada paciente en minutos y compártelo en un enlace que se actualiza solo.
+          </p>
+        </div>
+        <p className="mono-label relative text-[#6a7d6f]">Lic. Laura Molinas · Reg. Prof. 6020</p>
       </aside>
 
       <main className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm">
           <Brand size="md" className="mb-10 lg:hidden" />
 
-          <h1 className="text-[32px] font-medium leading-tight">{isSignUp ? 'Crea tu cuenta' : 'Bienvenida de vuelta'}</h1>
+          <h1 className="text-[40px]">{isSignUp ? 'Crea tu cuenta' : 'Bienvenida'}</h1>
           <p className="mt-2 text-[15px] text-muted">
             {isSignUp
               ? 'Registro profesional para nutricionistas.'
@@ -206,7 +221,7 @@ export default function LoginPage() {
     <React.Suspense
       fallback={
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
-          <div className="text-primary text-xs font-semibold flex items-center gap-2">
+          <div className="text-primary-text text-xs font-semibold flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-primary animate-ping" />
             Cargando acceso profesional...
           </div>

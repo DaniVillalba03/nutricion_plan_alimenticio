@@ -32,6 +32,8 @@ interface MealCardProps {
   onAddItem: (mealId: string, groupId: string, exchangeCount: number) => void;
   onOpenEquivalents: (item: MealPlanItem, group: ExchangeGroup) => void;
   onClearSuggestedFood: (mealId: string, itemId: string) => void;
+  /** Posición de la comida en el plan (para el número 01, 02...). */
+  index?: number;
 }
 
 /**
@@ -47,6 +49,7 @@ export function MealCard({
   onAddItem,
   onOpenEquivalents,
   onClearSuggestedFood,
+  index,
 }: MealCardProps) {
   const groupsMap = new Map<string, ExchangeGroup>(exchangeGroups.map((g) => [g.id, g]));
   const foodsMap = new Map<string, Food>(allFoods.map((f) => [f.id, f]));
@@ -102,26 +105,29 @@ export function MealCard({
 
   return (
     <Card className="overflow-visible">
-      <div className="flex items-center justify-between gap-4 rounded-t-xl border-b border-border bg-surface-muted/50 px-5 py-3.5">
-        <div className="flex min-w-0 items-center gap-3.5">
+      <div className="flex items-center justify-between gap-4 rounded-t-[14px] border-b border-border bg-surface-muted/60 px-5 py-4">
+        <div className="flex min-w-0 items-center gap-4">
           <span
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-muted"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-muted"
             aria-hidden="true"
           >
             <Icon className="h-5 w-5" strokeWidth={1.6} />
           </span>
           <div className="min-w-0">
-            <h3 className="font-display text-xl font-medium leading-tight text-foreground">{meal.name}</h3>
-            {meal.time && <p className="text-[13px] tabular-nums text-muted">{meal.time}</p>}
+            {index !== undefined && (
+              <p className="mono-label text-subtle">{String(index + 1).padStart(2, '0')}{meal.time ? ` · ${meal.time}` : ''}</p>
+            )}
+            <h3 className="text-[22px] font-bold leading-tight tracking-[-0.035em] text-foreground">{meal.name}</h3>
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 text-[13px] tabular-nums">
-          <span className="hidden rounded-md border border-border bg-surface px-2 py-1 text-muted sm:inline">
-            {nf.format(mealExchanges)} int
-          </span>
-          <span className="rounded-md border border-border bg-surface px-2 py-1 font-medium text-foreground">
-            {nf.format(Math.round(mealCalories))} kcal
+        <div className="flex shrink-0 items-baseline gap-3 tabular-nums">
+          <span className="mono-label hidden text-subtle sm:inline">{nf.format(mealExchanges)} int</span>
+          <span className="flex items-baseline gap-1">
+            <span className="text-2xl font-bold leading-none tracking-[-0.04em] text-foreground">
+              {nf.format(Math.round(mealCalories))}
+            </span>
+            <span className="text-[13px] text-muted">kcal</span>
           </span>
         </div>
       </div>
@@ -131,7 +137,7 @@ export function MealCard({
           <p className="text-sm text-muted">Esta comida todavía no tiene grupos.</p>
           <div className="mt-3 flex justify-center">
             {addGroup(
-              'inline-flex h-9 items-center gap-1.5 rounded-lg border border-border-strong bg-surface px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted',
+              'inline-flex h-9 items-center gap-1.5 rounded-full border border-border-strong bg-surface px-4 text-sm font-semibold text-foreground transition-colors hover:bg-surface-muted',
               'left'
             )}
           </div>
@@ -164,8 +170,8 @@ export function MealCard({
 
                     <div className="min-w-0 flex-1">
                       <p className="flex items-baseline gap-2 text-[15px] text-foreground">
-                        <span className="truncate font-medium">{group.name}</span>
-                        <span className="shrink-0 text-[13px] tabular-nums text-muted">{itemCalories} kcal</span>
+                        <span className="truncate font-semibold">{group.name}</span>
+                        <span className="mono-label shrink-0 text-subtle">{itemCalories} kcal</span>
                       </p>
 
                       {suggestedFood ? (
@@ -225,9 +231,9 @@ export function MealCard({
             })}
           </ul>
 
-          <div className="rounded-b-xl border-t border-border bg-surface-muted/30 px-3 py-2">
+          <div className="rounded-b-[14px] border-t border-border bg-surface-muted/40 px-3 py-2">
             {addGroup(
-              'inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-foreground transition-colors hover:bg-surface-muted',
+              'inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold text-foreground transition-colors hover:bg-surface-muted',
               'right'
             )}
           </div>

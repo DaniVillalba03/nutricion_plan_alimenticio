@@ -63,11 +63,11 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col border-r border-border bg-surface transition-transform duration-200 ease-in-out lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col border-r border-border bg-surface transition-transform duration-200 ease-in-out lg:translate-x-0',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex items-center justify-between px-6 pb-6 pt-7">
+        <div className="flex items-center justify-between px-7 pb-8 pt-8">
           <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
             <Brand />
           </Link>
@@ -81,7 +81,7 @@ export function Sidebar() {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3" aria-label="Navegación principal">
+        <nav className="flex-1 space-y-1 px-4" aria-label="Navegación principal">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href);
@@ -93,14 +93,13 @@ export function Sidebar() {
                 onClick={() => setMobileOpen(false)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'relative flex items-center gap-3 rounded-lg border px-3 py-2.5 text-[15px] transition-colors',
+                  'flex items-center gap-3 whitespace-nowrap rounded-full px-4 py-2.5 text-[15px] transition-colors',
                   isActive
-                    ? 'border-border bg-surface font-medium text-foreground shadow-[0_1px_2px_rgb(15_15_25/0.06)] dark:shadow-none'
-                    : 'border-transparent text-muted hover:bg-surface-muted/70 hover:text-foreground'
+                    ? 'bg-primary-soft font-semibold text-primary-soft-foreground'
+                    : 'text-muted hover:bg-surface-muted hover:text-foreground'
                 )}
               >
-                {isActive && <span className="absolute -left-3 top-2 bottom-2 w-[3px] rounded-r-full bg-primary" aria-hidden="true" />}
-                <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-primary' : 'text-subtle')} strokeWidth={1.75} />
+                <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-primary-soft-foreground' : 'text-subtle')} strokeWidth={1.75} />
                 {item.label}
               </Link>
             );
@@ -110,7 +109,7 @@ export function Sidebar() {
         <div className="border-t border-border px-5 py-4">
           <div className="flex items-center gap-3">
             <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border-strong bg-surface text-[13px] font-semibold text-foreground"
+              className="mono-label flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary-soft-foreground"
               aria-hidden="true"
             >
               LM

@@ -5,10 +5,10 @@
 /*
  * Sistema de diseño
  * -----------------
- * Grises neutros (sin tinte), acción principal en tinta y titulares serif para la elegancia.
- * El verde de la marca es un acento escaso: significa éxito o selección, no decora. La jerarquía la dan el
- * tamaño, el peso y el espacio (no las cajas ni los colores). Los colores de los
- * macronutrientes son nítidos y solo se usan para datos, nunca como decoración.
+ * Técnico y cálido a la vez: blanco verdoso, tinta casi negra y un verde vivo con texto
+ * oscuro encima (no blanco). Titulares en grotesca geométrica con tracking cerrado,
+ * microetiquetas en monoespaciada, paneles con borde finísimo y botones en píldora.
+ * Los datos son los protagonistas: cifras grandes con la unidad pequeña al lado.
  *
  * Los componentes usan estas utilidades (bg-surface, text-muted, border-border...) y no
  * necesitan variantes `dark:`: el valor cambia con la clase `.dark`.
@@ -16,81 +16,86 @@
 :root {
   color-scheme: light;
 
-  --background: #f3f4f6;
-  --foreground: #111113;
+  --background: #fafbf8;
+  --foreground: #0e1a12;
 
   --surface: #ffffff;
-  --surface-muted: #eceef2;
+  --surface-muted: #f2f4ef;
   --surface-elevated: #ffffff;
 
-  --border: #dcdee4;
-  --border-strong: #c4c7d0;
+  --border: #e4e8e1;
+  --border-strong: #cfd5cb;
 
-  --muted: #575b66;
-  --subtle: #83878f;
+  --muted: #4f5c53;
+  --subtle: #7a857c;
 
-  /* La marca se usa con moderación: estados de éxito, selección y la firma "PY" */
-  --primary: #0f7a5a;
-  --primary-hover: #0a634a;
-  --primary-soft: #dff3ea;
-  --primary-soft-foreground: #0b6048;
-  --primary-foreground: #ffffff;
+  /* Marca: verde vivo para rellenos; verde profundo para texto resaltado */
+  --primary: #1fbf4a;
+  --primary-hover: #17a53d;
+  --primary-text: #0e6b2c;
+  --primary-soft: #e8f7ec;
+  --primary-soft-foreground: #0e6b2c;
+  --primary-foreground: #06140a;
 
-  /* La acción principal es tinta: negro en claro, blanco en oscuro */
-  --accent: #111113;
-  --accent-hover: #2b2b30;
-  --accent-foreground: #ffffff;
+  /* Tinta: botones y énfasis oscuros */
+  --accent: #06140a;
+  --accent-hover: #1d2d22;
+  --accent-foreground: #fafbf8;
 
-  --danger: #c93a32;
-  --danger-soft: #fbe9e7;
-  --danger-soft-foreground: #a02a23;
+  --danger: #c8351a;
+  --danger-soft: #ffece6;
+  --danger-soft-foreground: #a02a14;
 
-  --warning: #b87a0a;
-  --warning-soft: #fdf2d8;
-  --warning-soft-foreground: #81550a;
+  --warning: #b07a0f;
+  --warning-soft: #fff6e0;
+  --warning-soft-foreground: #7d5609;
 
   --info: #2a6fb5;
   --info-soft: #e5f0fa;
   --info-soft-foreground: #1f568f;
 
   /* Macronutrientes: nítidos, solo para datos */
-  --macro-cho: #dca02b;
-  --macro-pro: #d9573f;
-  --macro-lip: #4380c4;
+  --macro-cho: #e0a020;
+  --macro-pro: #e0553b;
+  --macro-lip: #3a7fc8;
 
-  --ring: #3f3f46;
-  --overlay: rgb(10 10 12 / 0.5);
+  --grid-line: rgb(8 20 12 / 0.055);
+  --glow: rgb(31 191 74 / 0.16);
+
+  --ring: #1fbf4a;
+  --overlay: rgb(6 20 10 / 0.5);
 }
 
 .dark {
   color-scheme: dark;
 
-  --background: #08080a;
-  --foreground: #f2f2f4;
+  --background: #060d08;
+  --foreground: #eaf3ed;
 
-  --surface: #121216;
-  --surface-muted: #1c1c22;
-  --surface-elevated: #18181e;
+  --surface: #0d1710;
+  --surface-muted: #131f17;
+  --surface-elevated: #101b13;
 
-  --border: #2a2a33;
-  --border-strong: #3f3f4b;
+  --border: #1d2b21;
+  --border-strong: #2e4034;
 
-  --muted: #a3a3b0;
-  --subtle: #6f6f7c;
+  --muted: #9db0a2;
+  --subtle: #6a7d6f;
 
-  --primary: #34c38f;
-  --primary-hover: #55d6a5;
-  --primary-soft: rgb(52 195 143 / 0.14);
-  --primary-soft-foreground: #86e2bf;
-  --primary-foreground: #03150d;
+  --primary: #2ad15a;
+  --primary-hover: #4ae274;
+  --primary-text: #5fe287;
+  --primary-soft: rgb(42 209 90 / 0.13);
+  --primary-soft-foreground: #7beb9c;
+  --primary-foreground: #04120a;
 
-  --accent: #f2f2f4;
+  --accent: #eaf3ed;
   --accent-hover: #ffffff;
-  --accent-foreground: #0a0a0b;
+  --accent-foreground: #060d08;
 
-  --danger: #ef6a60;
-  --danger-soft: rgb(239 106 96 / 0.14);
-  --danger-soft-foreground: #f59a92;
+  --danger: #ef6a52;
+  --danger-soft: rgb(239 106 82 / 0.14);
+  --danger-soft-foreground: #f59a86;
 
   --warning: #f0b43c;
   --warning-soft: rgb(240 180 60 / 0.14);
@@ -104,7 +109,10 @@
   --macro-pro: #ef7a62;
   --macro-lip: #6aa5e8;
 
-  --ring: #a1a1aa;
+  --grid-line: rgb(190 255 210 / 0.05);
+  --glow: rgb(42 209 90 / 0.14);
+
+  --ring: #2ad15a;
   --overlay: rgb(0 0 0 / 0.7);
 }
 
@@ -120,6 +128,7 @@
   --color-subtle: var(--subtle);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-text: var(--primary-text);
   --color-primary-soft: var(--primary-soft);
   --color-primary-soft-foreground: var(--primary-soft-foreground);
   --color-primary-foreground: var(--primary-foreground);
@@ -142,8 +151,10 @@
   --color-overlay: var(--overlay);
 
   --font-sans: var(--font-ui);
-  --font-serif: var(--font-display);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-ui);
+  --font-mono: var(--font-mono-ui);
+
+  --radius-card: 14px;
 }
 
 /*
@@ -169,6 +180,33 @@
   --color-zinc-950: oklch(12.9% 0.042 264.695);
 }
 
+/* Microetiqueta de datos: monoespaciada, mayúsculas pequeñas, tracking abierto */
+@utility mono-label {
+  font-family: var(--font-mono-ui), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Fondo de cabecera: grilla finísima que se desvanece y un halo verde difuso */
+@utility bg-hero {
+  background-image:
+    radial-gradient(60% 55% at 50% 0%, var(--glow), transparent 70%),
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    44px 44px,
+    44px 44px;
+  background-position:
+    0 0,
+    -1px -1px,
+    -1px -1px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+}
+
 @layer base {
   html {
     font-size: 16px;
@@ -177,25 +215,31 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-size: 0.9375rem; /* 15 px: el cuerpo de la app ya no es "text-xs" */
+    font-size: 0.9375rem; /* 15 px */
     line-height: 1.55;
-    font-feature-settings: 'ss01', 'cv11';
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Títulos con carácter: serif humanista para titulares, sans para todo lo demás */
-  h1,
+  /* Titulares: grotesca geométrica en negrita con tracking cerrado */
+  h1 {
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 1.04;
+  }
+
   h2,
+  h3 {
+    letter-spacing: -0.03em;
+  }
+
   .font-display {
-    font-family: var(--font-display), ui-serif, Georgia, serif;
-    font-optical-sizing: auto;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.035em;
   }
 
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 6px;
   }
 
   ::selection {

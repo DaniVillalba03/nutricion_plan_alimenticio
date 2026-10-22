@@ -15,15 +15,11 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   tone?: BadgeTone;
 }
 
-/** Etiqueta pequeña para un estado o una restricción; no para decorar. */
+/** Chip de estado en monoespaciada y mayúsculas pequeñas; no para decorar. */
 export function Badge({ tone = 'neutral', className, ...props }: BadgeProps) {
   return (
     <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium',
-        TONES[tone],
-        className
-      )}
+      className={cn('mono-label inline-flex items-center gap-1 rounded-full px-2.5 py-1', TONES[tone], className)}
       {...props}
     />
   );

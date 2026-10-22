@@ -58,7 +58,7 @@ export function Modal({ open, onClose, title, description, size = 'md', children
         if (e.target === ref.current) onClose();
       }}
       className={cn(
-        'p-0 m-auto w-full max-h-[90dvh] rounded-xl border border-border bg-surface-elevated text-foreground shadow-[0_24px_60px_-20px_rgb(0_0_0/0.35)]',
+        'p-0 m-auto w-full max-h-[90dvh] rounded-[18px] border border-border bg-surface-elevated text-foreground shadow-[0_24px_60px_-20px_rgb(0_0_0/0.35)]',
         'backdrop:bg-overlay backdrop:backdrop-blur-sm',
         'max-sm:mb-0 max-sm:max-w-full max-sm:rounded-b-none',
         SIZES[size],
@@ -70,7 +70,7 @@ export function Modal({ open, onClose, title, description, size = 'md', children
         <div className="flex max-h-[90dvh] flex-col">
           <div className="flex items-start justify-between gap-4 px-6 pb-3 pt-5">
             <div>
-              <h2 className="text-xl font-medium">{title}</h2>
+              <h2 className="text-2xl font-bold">{title}</h2>
               {description && <p className="mt-1 text-sm text-muted">{description}</p>}
             </div>
             <button

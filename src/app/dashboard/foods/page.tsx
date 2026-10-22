@@ -159,7 +159,7 @@ export default function FoodsCatalogPage() {
         <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border-strong px-6 py-16 text-center">
           <SearchX className="h-7 w-7 text-subtle" strokeWidth={1.5} />
           <div>
-            <p className="font-display text-xl font-medium text-foreground">Sin resultados</p>
+            <p className="text-xl font-bold tracking-[-0.03em] text-foreground">Sin resultados</p>
             <p className="mt-1 text-[15px] text-muted">Prueba con otro término o quita algunos filtros.</p>
           </div>
           <Button size="sm" onClick={clearFilters}>
@@ -171,10 +171,10 @@ export default function FoodsCatalogPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left">
               <thead>
-                <tr className="border-b border-border text-[13px] text-muted">
-                  <th scope="col" className="px-5 py-3 font-medium">Alimento</th>
-                  <th scope="col" className="px-3 py-3 font-medium">Grupo</th>
-                  <th scope="col" className="px-3 py-3 font-medium">Porción de 1 intercambio</th>
+                <tr className="border-b border-border bg-surface-muted/60 mono-label text-subtle">
+                  <th scope="col" className="px-5 py-3.5 font-medium">Alimento</th>
+                  <th scope="col" className="px-3 py-3.5 font-medium">Grupo</th>
+                  <th scope="col" className="px-3 py-3.5 font-medium">Porción de 1 intercambio</th>
                   <th scope="col" className="px-5 py-3 text-right font-medium">Gramos</th>
                 </tr>
               </thead>

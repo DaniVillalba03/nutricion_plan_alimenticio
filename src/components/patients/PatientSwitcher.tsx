@@ -32,10 +32,10 @@ export function PatientSwitcher({ clients, activeClient, onSelect, onCreate }: P
       triggerClassName="group -ml-2 inline-flex max-w-full items-center gap-2 rounded-lg px-2 py-0.5 text-left transition-colors hover:bg-surface-muted"
       trigger={
         <>
-          <span className="truncate font-display text-[28px] font-medium leading-tight text-foreground sm:text-[32px]">
+          <span className="truncate text-[34px] font-bold leading-[1.04] tracking-[-0.045em] text-foreground sm:text-[44px]">
             {activeClient.fullName}
           </span>
-          <ChevronDown className="mt-1 h-5 w-5 shrink-0 text-subtle transition-colors group-hover:text-foreground" />
+          <ChevronDown className="mt-2 h-6 w-6 shrink-0 text-subtle transition-colors group-hover:text-foreground" />
         </>
       }
     >

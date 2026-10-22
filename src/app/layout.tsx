@@ -1,23 +1,17 @@
 import type { Metadata } from "next";
-import { Figtree, Newsreader, Geist_Mono } from "next/font/google";
+import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
-// Sans de interfaz: redondeada y muy legible en español y con cifras claras
-const ui = Figtree({
+// Grotesca geométrica: titulares en negrita con tracking cerrado y cifras muy legibles
+const ui = Space_Grotesk({
   variable: "--font-ui",
   subsets: ["latin"],
 });
 
-// Serif para titulares: le da carácter editorial y calidez a una herramienta clínica
-const display = Newsreader({
-  variable: "--font-display",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-});
-
-const mono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Monoespaciada para microetiquetas de datos (mayúsculas pequeñas)
+const mono = JetBrains_Mono({
+  variable: "--font-mono-ui",
   subsets: ["latin"],
 });
 
@@ -36,7 +30,7 @@ export default function RootLayout({
     <html
       lang="es"
       suppressHydrationWarning
-      className={`${ui.variable} ${display.variable} ${mono.variable} h-full antialiased`}
+      className={`${ui.variable} ${mono.variable} h-full antialiased`}
     >
       <head>
         {/* Aplica el tema antes del primer pintado para evitar el parpadeo */}

@@ -2,7 +2,7 @@ import React, { useId } from 'react';
 import { cn } from '@/lib/utils';
 
 const CONTROL =
-  'w-full rounded-lg border border-border-strong bg-surface px-3 text-[15px] text-foreground placeholder:text-subtle ' +
+  'w-full rounded-[10px] border border-border-strong bg-surface px-3.5 text-[15px] text-foreground placeholder:text-subtle ' +
   'transition-colors focus:outline-none focus:border-ring focus:ring-[3px] focus:ring-ring/20 ' +
   'disabled:opacity-60 aria-[invalid=true]:border-danger';
 
@@ -40,7 +40,7 @@ export function Field({ label, hint, error, className, children }: FieldProps) {
   const note = error || hint;
   return (
     <div className={cn('space-y-1.5', className)}>
-      <label htmlFor={id} className="block text-[13px] font-medium text-foreground">
+      <label htmlFor={id} className="mono-label block text-muted">
         {label}
       </label>
       {children({

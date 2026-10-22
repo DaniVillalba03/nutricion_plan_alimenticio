@@ -25,13 +25,13 @@ const clamp = (n: number) => Math.min(MAX, Math.max(MIN, Math.round(n * 100) / 1
  */
 export function ExchangeStepper({ value, onChange, label }: ExchangeStepperProps) {
   const button =
-    'inline-flex h-8 w-8 items-center justify-center text-muted transition-colors hover:bg-surface-muted hover:text-foreground disabled:opacity-35 disabled:pointer-events-none';
+    'inline-flex h-8 w-9 items-center justify-center text-muted transition-colors hover:bg-surface-muted hover:text-foreground disabled:opacity-35 disabled:pointer-events-none';
 
   return (
     <div
       role="group"
       aria-label={`Intercambios de ${label}`}
-      className="inline-flex items-center overflow-hidden rounded-lg border border-border-strong bg-surface"
+      className="inline-flex items-center overflow-hidden rounded-full border border-border-strong bg-surface"
     >
       <button
         type="button"
@@ -47,7 +47,7 @@ export function ExchangeStepper({ value, onChange, label }: ExchangeStepperProps
         align="left"
         panelClassName="w-44 p-2"
         triggerLabel="Elegir cantidad de intercambios"
-        triggerClassName="h-8 min-w-12 border-x border-border px-2 text-center text-[15px] font-medium tabular-nums text-foreground transition-colors hover:bg-surface-muted"
+        triggerClassName="h-8 min-w-12 border-x border-border px-2 text-center text-[15px] font-semibold tabular-nums text-foreground transition-colors hover:bg-surface-muted"
         trigger={formatFriendlyFraction(value)}
       >
         {(close) => (
@@ -64,8 +64,8 @@ export function ExchangeStepper({ value, onChange, label }: ExchangeStepperProps
                     close();
                   }}
                   className={cn(
-                    'h-9 rounded-md text-[15px] tabular-nums transition-colors',
-                    current ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-surface-muted'
+                    'h-9 rounded-full text-[15px] tabular-nums transition-colors',
+                    current ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-surface-muted'
                   )}
                 >
                   {formatFriendlyFraction(preset)}

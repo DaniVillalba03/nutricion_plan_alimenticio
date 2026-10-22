@@ -97,7 +97,7 @@ export function MacroSummaryBar({ totals, client, className }: MacroSummaryBarPr
   const over = diff > 50;
 
   const status = onTarget
-    ? { text: 'Meta calórica alcanzada', tone: 'text-primary' }
+    ? { text: 'Meta calórica alcanzada', tone: 'text-primary-text' }
     : over
       ? { text: `Excede la meta por ${nf.format(diff)} kcal`, tone: 'text-warning' }
       : { text: `Faltan ${nf.format(Math.abs(diff))} kcal`, tone: 'text-muted' };
@@ -112,15 +112,15 @@ export function MacroSummaryBar({ totals, client, className }: MacroSummaryBarPr
   return (
     <section
       aria-label="Balance nutricional"
-      className={cn('overflow-hidden rounded-xl border border-border bg-surface shadow-[0_1px_2px_rgb(15_15_25/0.05)] dark:shadow-none', className)}
+      className={cn('overflow-hidden rounded-[14px] border border-border bg-surface', className)}
     >
-      <div className="border-b border-border bg-surface-muted/50 px-5 py-3">
-        <h2 className="font-sans text-sm font-semibold text-foreground">Balance del día</h2>
+      <div className="border-b border-border bg-surface-muted/60 px-5 py-3.5">
+        <h2 className="mono-label text-subtle">Balance · hoy</h2>
       </div>
 
       <div className="px-5 pb-5 pt-6">
         <CalorieRing percent={totals.calories.percentageOfTarget} over={over}>
-          <span className="font-display text-[34px] font-medium leading-none tabular-nums text-foreground">
+          <span className="text-[38px] font-bold leading-none tracking-[-0.045em] tabular-nums text-foreground">
             {nf.format(totals.calories.current)}
           </span>
           <span className="mt-1 text-[13px] tabular-nums text-muted">de {nf.format(client.targetCalories)} kcal</span>
@@ -153,7 +153,7 @@ export function MacroSummaryBar({ totals, client, className }: MacroSummaryBarPr
       </div>
 
       <div className="border-t border-border px-5 py-4">
-        <p className="text-[13px] font-medium text-foreground">Distribución calórica</p>
+        <p className="mono-label text-subtle">Distribución calórica</p>
         <div className="mt-2.5 flex h-2 w-full gap-0.5 overflow-hidden rounded-full bg-surface-muted" aria-hidden="true">
           {splitTotal > 0 &&
             split.map((s) => <div key={s.key} className={s.cls} style={{ width: `${(s.pct / splitTotal) * 100}%` }} />)}
@@ -161,9 +161,9 @@ export function MacroSummaryBar({ totals, client, className }: MacroSummaryBarPr
         <dl className="mt-3 grid grid-cols-3 gap-2 text-[13px]">
           {split.map((s) => (
             <div key={s.key}>
-              <dt className="text-muted">{s.key}</dt>
+              <dt className="mono-label text-muted">{s.key}</dt>
               <dd className="tabular-nums">
-                <span className="font-medium text-foreground">{Math.round(s.pct)}%</span>
+                <span className="text-[17px] font-bold tracking-[-0.03em] text-foreground">{Math.round(s.pct)}%</span>
                 <span className="block text-xs text-subtle">meta {s.target}%</span>
               </dd>
             </div>
@@ -171,7 +171,7 @@ export function MacroSummaryBar({ totals, client, className }: MacroSummaryBarPr
         </dl>
       </div>
 
-      <div className="border-t border-border bg-surface-muted/50 px-5 py-3 text-[13px] tabular-nums text-muted">
+      <div className="mono-label border-t border-border bg-surface-muted/60 px-5 py-3 text-subtle">
         {nf.format(totals.totalExchanges)} intercambios en total
       </div>
     </section>
@@ -189,10 +189,10 @@ export function MacroMiniBar({ totals, client }: Pick<MacroSummaryBarProps, 'tot
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/95 px-5 py-3 backdrop-blur lg:hidden">
       <div className="mx-auto flex max-w-lg items-baseline justify-between text-sm">
         <span className="tabular-nums">
-          <span className="font-display text-xl font-medium text-foreground">{nf.format(totals.calories.current)}</span>
+          <span className="text-xl font-bold tracking-[-0.04em] text-foreground">{nf.format(totals.calories.current)}</span>
           <span className="text-muted"> / {nf.format(client.targetCalories)} kcal</span>
         </span>
-        <span className={onTarget ? 'text-primary' : over ? 'text-warning' : 'text-muted'}>
+        <span className={onTarget ? 'text-primary-text' : over ? 'text-warning' : 'text-muted'}>
           {onTarget ? 'Meta alcanzada' : over ? `+${nf.format(diff)} kcal` : `Faltan ${nf.format(Math.abs(diff))}`}
         </span>
       </div>

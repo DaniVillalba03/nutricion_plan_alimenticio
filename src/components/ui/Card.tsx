@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 /** Superficie con borde fino y sin sombra: se usa solo para agrupar, no para decorar. */
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('rounded-xl border border-border bg-surface shadow-[0_1px_2px_rgb(15_15_25/0.05)] dark:shadow-none', className)} {...props} />;
+  return <div className={cn('rounded-[14px] border border-border bg-surface', className)} {...props} />;
 }
 
 export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {

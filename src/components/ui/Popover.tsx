@@ -56,7 +56,7 @@ export function Popover({
       {open && (
         <div
           className={cn(
-            'absolute z-50 mt-1.5 min-w-56 rounded-xl border border-border bg-surface-elevated p-1.5 shadow-[0_12px_32px_-12px_rgb(0_0_0/0.3)]',
+            'absolute z-50 mt-1.5 min-w-56 rounded-[14px] border border-border bg-surface-elevated p-1.5 shadow-[0_12px_32px_-12px_rgb(0_0_0/0.3)]',
             align === 'right' ? 'right-0' : 'left-0',
             panelClassName
           )}
@@ -77,7 +77,7 @@ export function MenuItem({ icon, className, children, ...props }: MenuItemProps)
     <button
       type="button"
       className={cn(
-        'flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm text-foreground transition-colors hover:bg-surface-muted',
+        'flex w-full items-center gap-2.5 rounded-[10px] px-2.5 py-2 text-left text-sm text-foreground transition-colors hover:bg-surface-muted',
         className
       )}
       {...props}

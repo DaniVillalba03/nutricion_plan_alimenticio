@@ -23,7 +23,7 @@ export default function PatientPortalPage({ params }: { params: Promise<{ token:
     <React.Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-background p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+          <div className="flex items-center gap-2 text-xs font-semibold text-primary-text">
             <span className="h-2.5 w-2.5 animate-ping rounded-full bg-primary" />
             Cargando portal del paciente...
           </div>

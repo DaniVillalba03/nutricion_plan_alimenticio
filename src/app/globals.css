@@ -1,0 +1,210 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Tokens semánticos de diseño.
+ * Los componentes nuevos usan estas utilidades (bg-surface, text-muted, border-border...)
+ * y no necesitan variantes `dark:` porque el valor cambia con la clase `.dark`.
+ */
+:root {
+  color-scheme: light;
+
+  --background: #f8fafc;
+  --foreground: #0f172a;
+
+  --surface: #ffffff;
+  --surface-muted: #f1f5f9;
+  --surface-elevated: #ffffff;
+
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  --muted: #64748b;
+  --subtle: #94a3b8;
+
+  --primary: #059669;
+  --primary-hover: #047857;
+  --primary-soft: #ecfdf5;
+  --primary-soft-foreground: #047857;
+  --primary-foreground: #ffffff;
+
+  --accent: #0f172a;
+  --accent-hover: #1e293b;
+  --accent-foreground: #ffffff;
+
+  --danger: #e11d48;
+  --danger-soft: #fff1f2;
+  --danger-soft-foreground: #be123c;
+
+  --warning: #d97706;
+  --warning-soft: #fffbeb;
+  --warning-soft-foreground: #b45309;
+
+  --info: #2563eb;
+  --info-soft: #eff6ff;
+  --info-soft-foreground: #1d4ed8;
+
+  --ring: #10b981;
+  --overlay: rgb(2 6 23 / 0.6);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: #020617;
+  --foreground: #f1f5f9;
+
+  --surface: #0f172a;
+  --surface-muted: #1e293b;
+  --surface-elevated: #162033;
+
+  --border: #1e293b;
+  --border-strong: #334155;
+
+  --muted: #94a3b8;
+  --subtle: #64748b;
+
+  --primary: #10b981;
+  --primary-hover: #34d399;
+  --primary-soft: rgb(16 185 129 / 0.12);
+  --primary-soft-foreground: #6ee7b7;
+  --primary-foreground: #022c22;
+
+  --accent: #f1f5f9;
+  --accent-hover: #ffffff;
+  --accent-foreground: #0f172a;
+
+  --danger: #fb7185;
+  --danger-soft: rgb(244 63 94 / 0.12);
+  --danger-soft-foreground: #fda4af;
+
+  --warning: #fbbf24;
+  --warning-soft: rgb(245 158 11 / 0.12);
+  --warning-soft-foreground: #fcd34d;
+
+  --info: #60a5fa;
+  --info-soft: rgb(59 130 246 / 0.12);
+  --info-soft-foreground: #93c5fd;
+
+  --ring: #34d399;
+  --overlay: rgb(2 6 23 / 0.75);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-soft-foreground: var(--danger-soft-foreground);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-foreground: var(--warning-soft-foreground);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-info-soft-foreground: var(--info-soft-foreground);
+  --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/*
+ * Paleta única para el código existente: `zinc` y `slate` compartían uso y mezclaban
+ * grises neutros con grises azulados. Se igualan los dos al tono slate y se definen
+ * 750 y 850, que Tailwind no trae y que el código ya referenciaba.
+ */
+@theme {
+  --color-slate-750: oklch(32.5% 0.0425 258.7);
+  --color-slate-850: oklch(24.3% 0.0415 262.8);
+
+  --color-zinc-50: oklch(98.4% 0.003 247.858);
+  --color-zinc-100: oklch(96.8% 0.007 247.896);
+  --color-zinc-200: oklch(92.9% 0.013 255.508);
+  --color-zinc-300: oklch(86.9% 0.022 252.894);
+  --color-zinc-400: oklch(70.4% 0.04 256.788);
+  --color-zinc-500: oklch(55.4% 0.046 257.417);
+  --color-zinc-600: oklch(44.6% 0.043 257.281);
+  --color-zinc-700: oklch(37.2% 0.044 257.287);
+  --color-zinc-750: oklch(32.5% 0.0425 258.7);
+  --color-zinc-800: oklch(27.9% 0.041 260.031);
+  --color-zinc-850: oklch(24.3% 0.0415 262.8);
+  --color-zinc-900: oklch(20.8% 0.042 265.755);
+  --color-zinc-950: oklch(12.9% 0.042 264.695);
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Custom smooth transitions and scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Impresión: solo el documento del plan (portal con data-print-root). */
+@media print {
+  body > *:not([data-print-root]) {
+    display: none !important;
+  }
+
+  [data-print-root] {
+    position: static !important;
+    overflow: visible !important;
+    background: #fff !important;
+    padding: 0 !important;
+    backdrop-filter: none !important;
+  }
+}

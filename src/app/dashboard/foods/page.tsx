@@ -136,7 +136,7 @@ export default function FoodsCatalogPage() {
               onChange={(e) => setOnlyParaguayMarked(e.target.checked)}
               className="h-4 w-4 accent-[var(--primary)]"
             />
-            Solo con sello Paraguay (*)
+            Solo alimentos paraguayos (*)
           </label>
 
           {hasFilters && (

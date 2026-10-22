@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, Pencil, Trash2 } from 'lucide-react';
+import { ArrowRight, LineChart, Pencil, Trash2 } from 'lucide-react';
 import type { Client } from '@/types/nutrition';
 import { buttonClasses } from '@/components/ui';
 import { cn } from '@/lib/utils';
@@ -51,13 +51,22 @@ export function PatientCard({ client, onOpenPlan, onDelete, onEdit }: PatientCar
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-6">
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 sm:gap-x-6">
         <dl className="grid grid-cols-4 gap-x-5 text-right tabular-nums">
           <Stat label="kcal" value={nf.format(client.targetCalories)} strong />
           <Stat label="CHO" value={`${client.targetMacros.carbohydrates} g`} />
           <Stat label="PRO" value={`${client.targetMacros.proteins} g`} />
           <Stat label="LIP" value={`${client.targetMacros.lipids} g`} />
         </dl>
+
+        <Link
+          href={`/dashboard/clients/${client.id}`}
+          className={cn(buttonClasses('ghost', 'md'), 'shrink-0')}
+          aria-label={`Ver el progreso de ${client.fullName}`}
+        >
+          <LineChart className="h-4 w-4" />
+          Progreso
+        </Link>
 
         <Link
           href="/dashboard"

@@ -144,9 +144,13 @@ describe('con sesión', () => {
     queryResult = { data: [{ id: UUID }], error: null };
     const res = await updateClientAction(UUID, { ...validClient, exclusions: ['Lactosa'] });
     expect(res).toEqual({ success: true });
-    expect(calls.map((c) => c.table)).toEqual(['clients', 'client_food_rules', 'client_food_rules']);
-    expect(calls[1].ops).toContain('delete');
-    expect(calls[2].ops).toContain('insert');
+    // Lee el peso anterior, actualiza y reemplaza las restricciones
+    expect(calls.map((c) => c.table)).toEqual(['clients', 'clients', 'client_food_rules', 'client_food_rules']);
+    expect(calls[2].ops).toContain('delete');
+    expect(calls[3].ops).toContain('insert');
+    // El peso cambió respecto al de la ficha: se registra como control del seguimiento
+    expect(rpcCalls.map((c) => c.fn)).toEqual(['add_measurement']);
+    expect(rpcCalls[0].args.p).toMatchObject({ client_id: UUID, weight_kg: 78 });
   });
 
   it('savePlanAction guarda todo con UNA llamada atómica a la base', async () => {

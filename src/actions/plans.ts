@@ -54,6 +54,7 @@ export async function savePlanAction(rawInput: unknown) {
         title: planInput.title,
         notes: planInput.notes || null,
         version_number: planInput.versionNumber,
+        change_note: planInput.changeNote || null,
         share_expires_at: planInput.shareExpiresAt || null,
         is_share_revoked: planInput.isShareRevoked ?? false,
         meals: planInput.meals.map((meal) => ({

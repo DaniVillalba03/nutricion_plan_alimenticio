@@ -23,7 +23,7 @@ export async function createClient() {
           });
         } catch {
           // El método `setAll` fue llamado desde un Server Component.
-          // Esto puede ignorarse de forma segura si el middleware refresca la sesión.
+          // Esto puede ignorarse de forma segura si el proxy refresca la sesión.
         }
       },
     },

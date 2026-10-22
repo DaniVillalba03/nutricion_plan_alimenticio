@@ -69,3 +69,46 @@ test.describe('constructor de planes', () => {
     await expect(estado).toHaveText('Guardado', { timeout: 10_000 });
   });
 });
+
+test.describe('seguimiento del paciente', () => {
+  test('registrar controles muestra la evolución, la tabla y permite eliminar', async ({ page }) => {
+    await page.goto('/login');
+    await page.getByLabel('Correo electrónico').fill('lic@example.com');
+    await page.getByLabel('Contraseña').fill('cualquier-clave');
+    await page.getByRole('button', { name: /Ingresar/ }).click();
+    await expect(page).toHaveURL(/\/dashboard/);
+
+    await page.getByRole('link', { name: 'Pacientes' }).first().click();
+    await page.getByRole('link', { name: /Ver el progreso de Lic\. María Elena/ }).click();
+    await expect(page.getByRole('heading', { name: 'Lic. María Elena Benítez' })).toBeVisible();
+    await expect(page.getByText('Todavía no hay controles')).toBeVisible();
+
+    const registrar = async (fecha: string, peso: string) => {
+      await page.getByRole('button', { name: 'Registrar control' }).click();
+      const dialogo = page.getByRole('dialog', { name: 'Registrar control' });
+      await dialogo.getByLabel('Fecha').fill(fecha);
+      await dialogo.getByLabel('Peso (kg)').fill(peso);
+      await dialogo.getByRole('button', { name: 'Guardar control' }).click();
+      await expect(dialogo).toBeHidden();
+    };
+    await registrar('2026-09-01', '66');
+    await registrar('2026-10-01', '64.5');
+
+    await expect(page.getByRole('img', { name: /Peso de .* de 66 a 64,5 kg/ })).toBeVisible();
+    await expect(page.getByRole('cell', { name: '64,5 kg' })).toBeVisible();
+    await expect(page.getByText('−1,5 kg').first()).toBeVisible();
+
+    // Un peso inválido se rechaza con un mensaje
+    await page.getByRole('button', { name: 'Registrar control' }).click();
+    const dialogo = page.getByRole('dialog', { name: 'Registrar control' });
+    await dialogo.getByLabel('Peso (kg)').fill('5');
+    await dialogo.getByRole('button', { name: 'Guardar control' }).click();
+    await expect(dialogo.getByRole('alert')).toContainText('al menos 20 kg');
+    await dialogo.getByRole('button', { name: 'Cancelar' }).click();
+
+    // Eliminar el más reciente
+    await page.getByRole('button', { name: /Eliminar el control del 01 oct/ }).click();
+    await page.getByRole('button', { name: 'Eliminar control' }).click();
+    await expect(page.getByRole('cell', { name: '64,5 kg' })).toHaveCount(0);
+  });
+});

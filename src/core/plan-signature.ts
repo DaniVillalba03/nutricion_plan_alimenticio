@@ -11,6 +11,7 @@ export function planSignature(plan: MealPlan): string {
     plan.title,
     plan.notes ?? '',
     plan.versionNumber ?? 1,
+    plan.versionNote ?? '',
     plan.shareExpiresAt ?? null,
     plan.isShareRevoked ?? false,
     plan.meals.map((meal) => [

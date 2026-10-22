@@ -139,21 +139,27 @@ describe('Plan operations - versionado', () => {
     expect(nextVersion).toBe(2.0);
     expect(next.versionNumber).toBe(2.0);
     expect(next.versions).toHaveLength(1);
+    // La nota explica la versión nueva; la archivada conserva la que ya tenía
+    expect(next.versionNote).toBe('Ajuste de CHO');
     expect(next.versions![0]).toMatchObject({
       versionNumber: 1.0,
-      changeNote: 'Ajuste de CHO',
+      changeNote: undefined,
       isActive: false,
       planId: plan.id,
     });
+
+    const again = archiveCurrentVersion(next, 'Subí las calorías');
+    expect(again.plan.versions![0].changeNote).toBe('Ajuste de CHO');
+    expect(again.plan.versionNote).toBe('Subí las calorías');
   });
 
-  it('usa una nota por defecto y asume versión 1.0 si no hay número', () => {
+  it('sin nota la versión nueva queda sin nota y se asume versión 1.0 si no hay número', () => {
     const plan = { ...basePlan(), versionNumber: undefined, versions: undefined };
 
     const { plan: next, nextVersion } = archiveCurrentVersion(plan, '');
 
     expect(nextVersion).toBe(2.0);
-    expect(next.versions![0].changeNote).toBe('Evolución clínica a Versión 2');
+    expect(next.versionNote).toBeUndefined();
   });
 
   it('el historial más reciente va primero y la copia archivada es independiente', () => {
@@ -167,14 +173,16 @@ describe('Plan operations - versionado', () => {
   });
 
   it('restaura las comidas de una versión y deja una nota', () => {
-    const { plan: archived } = archiveCurrentVersion({ ...basePlan(), versionNumber: 1.0 }, 'base');
+    const { plan: v2 } = archiveCurrentVersion({ ...basePlan(), versionNumber: 1.0 }, 'base');
+    const { plan: archived } = archiveCurrentVersion(v2, 'segunda');
     const edited = removeItemFromMeal(archived, archived.meals[0].id, archived.meals[0].items[0].id);
-    const version = archived.versions![0];
+    const version = archived.versions![0]; // la v2, que nació con la nota 'base'
 
     const restored = restoreVersionMeals(edited, version);
 
     expect(restored.meals).toEqual(version.meals);
     expect(restored.meals).not.toBe(version.meals);
-    expect(restored.notes).toBe('Restaurado de Versión 1 (base)');
+    expect(restored.notes).toBe('Restaurado de Versión 2 (base)');
+    expect(restoreVersionMeals(edited, { ...version, changeNote: undefined }).notes).toBe('Restaurado de Versión 2');
   });
 });

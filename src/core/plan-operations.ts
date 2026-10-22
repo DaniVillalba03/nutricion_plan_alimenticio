@@ -80,7 +80,8 @@ export function archiveCurrentVersion(plan: MealPlan, note: string): { plan: Mea
     planId: plan.id,
     versionNumber: current,
     createdAt: new Date().toISOString(),
-    changeNote: note.trim() || `Evolución clínica a Versión ${nextVersion}`,
+    // La nota explica por qué se creó esa versión: la archivada conserva la suya
+    changeNote: plan.versionNote,
     isActive: false,
     meals: cloneDeep(plan.meals),
   };
@@ -89,6 +90,7 @@ export function archiveCurrentVersion(plan: MealPlan, note: string): { plan: Mea
     plan: {
       ...plan,
       versionNumber: nextVersion,
+      versionNote: note.trim() || undefined,
       updatedAt: new Date().toISOString().split('T')[0],
       versions: [archived, ...(plan.versions || [])],
     },
@@ -99,6 +101,8 @@ export function restoreVersionMeals(plan: MealPlan, version: PlanVersion): MealP
   return {
     ...plan,
     meals: cloneDeep(version.meals),
-    notes: `Restaurado de Versión ${version.versionNumber} (${version.changeNote})`,
+    notes: version.changeNote
+      ? `Restaurado de Versión ${version.versionNumber} (${version.changeNote})`
+      : `Restaurado de Versión ${version.versionNumber}`,
   };
 }

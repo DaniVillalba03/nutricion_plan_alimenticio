@@ -166,6 +166,9 @@ export async function createClientAction(rawInput: unknown) {
       await supabase.from('client_food_rules').insert(rules);
     }
 
+    // 3. El peso inicial es el primer control del seguimiento (si falla, el paciente igual queda creado)
+    await supabase.rpc('add_measurement', { p: { client_id: newClient.id, weight_kg: clientData.weightKg } });
+
     revalidatePath('/dashboard');
     revalidatePath('/dashboard/clients');
     return { success: true, data: newClient };
@@ -189,6 +192,15 @@ export async function updateClientAction(clientId: string, rawInput: unknown): P
 
   try {
     const supabase = await createClient();
+
+    // Para saber si cambió el peso (y entonces registrar un control nuevo en el seguimiento)
+    const { data: before } = await supabase
+      .from('clients')
+      .select('weight_kg')
+      .eq('id', clientId)
+      .eq('nutritionist_id', user.id)
+      .maybeSingle();
+
     const { data: updated, error } = await supabase
       .from('clients')
       .update({
@@ -212,6 +224,11 @@ export async function updateClientAction(clientId: string, rawInput: unknown): P
 
     if (error) return { success: false, error: error.message };
     if (!updated || updated.length === 0) return { success: false, error: 'No se encontró el paciente' };
+
+    // Un peso distinto al de la ficha es un control nuevo: así la evolución no se sobrescribe
+    if (before && Number(before.weight_kg) !== data.weightKg) {
+      await supabase.rpc('add_measurement', { p: { client_id: clientId, weight_kg: data.weightKg } });
+    }
 
     // Las restricciones se reemplazan completas (solo las de tipo exclusión por motivo)
     const { error: deleteRulesError } = await supabase

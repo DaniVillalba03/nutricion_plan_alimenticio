@@ -41,6 +41,7 @@ Las migraciones están en `supabase/migrations/` y se aplican **en orden** pegá
 2. `20261022000001_secure_portal.sql`: portal por token (`get_shared_plan`, sin lectura pública de tablas).
 3. `20261023000001_portal_progress.sql`: avance diario del paciente (comidas completadas y alimentos elegidos) mediante funciones que validan el token.
 4. `20261024000001_hardening_and_catalog.sql`: un plan solo puede apuntar a pacientes propios, alimentos propios de la nutricionista y `save_plan` (guardado atómico de plan + versión + comidas + ítems).
+5. `20261025000001_progress_tracking.sql`: controles de peso y medidas por paciente (`client_measurements`, `add_measurement`, `delete_measurement`) y la nota de cada versión del plan.
 
 Variables de entorno en Vercel (*Settings → Environment Variables*): `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`. No se usa `service_role` en ningún lado.
 

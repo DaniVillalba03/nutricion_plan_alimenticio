@@ -49,7 +49,8 @@ describe('usePlanEditor', () => {
     expect(next).toBe(Number((before + 1).toFixed(1)));
     expect(result.current.plan.versionNumber).toBe(next);
     expect(result.current.plan.versions).toHaveLength(archivedBefore + 1);
-    expect(result.current.plan.versions![0].changeNote).toBe('Ajuste');
+    // La nota explica la versión nueva (la que queda vigente)
+    expect(result.current.plan.versionNote).toBe('Ajuste');
   });
 
   it('restaura una versión archivada', () => {

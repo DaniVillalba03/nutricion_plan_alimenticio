@@ -39,6 +39,7 @@ Para cambios visuales, además abre la pantalla en el navegador (claro y oscuro,
 | Esquema, RLS y funciones SQL | `supabase/migrations/` |
 | Constructor de planes | `src/app/dashboard/page.tsx` + `src/components/planner/` |
 | Portal del paciente | `src/app/p/[token]/` |
+| Seguimiento del paciente (peso, controles, adherencia) | `src/app/dashboard/clients/[id]/` + `src/actions/progress.ts` + `src/core/progress.ts` |
 | Primitivas de UI | `src/components/ui/` |
 | Tokens de color, tipografía, impresión | `src/app/globals.css` |
 | Catálogo de alimentos | Base de datos (`foods`); `src/lib/mock-data.ts` solo es respaldo/demo y define los grupos |

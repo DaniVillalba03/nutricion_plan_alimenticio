@@ -231,3 +231,15 @@ export function suggestExchangeFromNutrients100g(
     },
   };
 }
+
+/** Control de peso y medidas de un paciente. */
+export const MeasurementInputSchema = z.object({
+  measuredOn: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'La fecha no es válida')
+    .optional(),
+  weightKg: z.coerce.number().min(20, 'El peso debe ser de al menos 20 kg').max(400, 'El peso no parece válido'),
+  bodyFatPct: z.coerce.number().min(2, '% de grasa entre 2 y 70').max(70, '% de grasa entre 2 y 70').optional(),
+  waistCm: z.coerce.number().min(30, 'Cintura entre 30 y 250 cm').max(250, 'Cintura entre 30 y 250 cm').optional(),
+  notes: z.string().max(500, 'Las notas admiten hasta 500 caracteres').optional(),
+});

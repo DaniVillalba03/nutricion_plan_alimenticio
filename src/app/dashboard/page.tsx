@@ -151,6 +151,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
         title: toSave.title,
         notes: toSave.notes,
         versionNumber: toSave.versionNumber || 1,
+        changeNote: toSave.versionNote,
         meals: toSave.meals,
         shareExpiresAt: toSave.shareExpiresAt ?? null,
         isShareRevoked: toSave.isShareRevoked,

@@ -29,6 +29,7 @@ const VersionSchema = z.object({
   share_token: z.string().nullable().optional(),
   share_expires_at: z.string().nullable().optional(),
   created_at: z.string().nullable().optional(),
+  change_note: z.string().nullable().optional(),
   plan_meals: z.array(MealSchema).default([]),
 });
 
@@ -76,7 +77,7 @@ export function mapStoredPlan(raw: unknown): MealPlan | null {
     planId: p.id,
     versionNumber: v.version_number,
     createdAt: v.created_at ?? '',
-    changeNote: `Versión ${v.version_number}`,
+    changeNote: v.change_note ?? undefined,
     isActive: false,
     meals: mapMeals(v.plan_meals),
   }));
@@ -90,6 +91,7 @@ export function mapStoredPlan(raw: unknown): MealPlan | null {
     updatedAt: (p.updated_at ?? '').split('T')[0],
     meals: current ? mapMeals(current.plan_meals) : [],
     versionNumber: current?.version_number ?? 1,
+    versionNote: current?.change_note ?? undefined,
     versions: archived,
     shareToken: current?.share_token ?? undefined,
     isShareRevoked: current ? current.is_active === false : false,

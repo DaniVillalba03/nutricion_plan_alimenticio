@@ -34,6 +34,7 @@ describe('planSignature', () => {
       (p) => (p.title = 'Otro título'),
       (p) => (p.notes = 'nota'),
       (p) => (p.versionNumber = 2),
+      (p) => (p.versionNote = 'subí las calorías'),
       (p) => (p.isShareRevoked = true),
       (p) => (p.shareExpiresAt = '2026-12-01'),
       (p) => (p.meals[0].name = 'Merienda'),

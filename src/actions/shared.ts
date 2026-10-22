@@ -36,7 +36,7 @@ export async function getAuthenticatedUser(): Promise<AuthUser> {
 
   // getSession() lee la cookie sin ir a la red (getUser() es una llamada extra a Supabase Auth
   // en cada acción). Aquí solo se usa para saber el id y el correo: la autorización real la
-  // hace RLS en la base, que verifica el JWT en cada consulta; y el middleware ya validó la
+  // hace RLS en la base, que verifica el JWT en cada consulta; y el proxy (src/proxy.ts) ya validó la
   // sesión con getUser() en esta misma petición.
   const supabase = await createClient();
   const {

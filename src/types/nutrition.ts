@@ -129,6 +129,7 @@ export interface MealPlan {
   notes?: string;
   meals: MealPlanMeal[];
   versionNumber?: number;       // Versión activa actual
+  versionNote?: string;         // Nota de la versión activa (por qué se creó)
   versions?: PlanVersion[];     // Historial de versiones del plan
   shareToken?: string;
   isShareRevoked?: boolean;
@@ -193,4 +194,21 @@ export interface GroupSuggestionResult {
     calculatedKcal: number;
     diffPercent: number;
   };
+}
+
+/** Control periódico de un paciente (peso y medidas). Uno por día. */
+export interface Measurement {
+  id: string;
+  measuredOn: string;      // AAAA-MM-DD
+  weightKg: number;
+  bodyFatPct?: number;
+  waistCm?: number;
+  notes?: string;
+}
+
+/** Comidas completadas por el paciente en su portal un día concreto. */
+export interface AdherenceDay {
+  day: string;             // AAAA-MM-DD
+  completed: number;
+  total: number;
 }

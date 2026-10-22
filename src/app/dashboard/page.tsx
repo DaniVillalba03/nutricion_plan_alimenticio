@@ -1,17 +1,19 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   MOCK_EXCHANGE_GROUPS,
   MOCK_FOODS,
   MOCK_INITIAL_PLAN,
   MOCK_PLAN_TEMPLATES,
 } from '@/lib/mock-data';
-import { MealPlanItem, ExchangeGroup, PlanTemplate, PlanVersion } from '@/types/nutrition';
+import { Client, MealPlan, MealPlanItem, ExchangeGroup, PlanTemplate, PlanVersion } from '@/types/nutrition';
 import { calculatePlanTotals } from '@/core/exchange-engine';
 import { cloneDeep, newId } from '@/lib/utils';
+import { MEAL_TYPES } from '@/core/plan-operations';
+import { emptyPlanFor } from '@/core/stored-plan';
 import { isDemoAccessEnabled } from '@/lib/supabase/client';
-import { savePlanAction, updateShareSettingsAction } from '@/actions/nutrition-actions';
+import { getLatestPlanAction, savePlanAction, updateShareSettingsAction } from '@/actions/nutrition-actions';
 import { usePatients } from '@/components/patients/PatientsProvider';
 import { PatientSwitcher } from '@/components/patients/PatientSwitcher';
 import { NewPatientModal } from '@/components/patients/NewPatientModal';
@@ -42,6 +44,8 @@ import {
   Save,
   ChevronDown,
   MoreHorizontal,
+  Users,
+  UserPlus,
 } from 'lucide-react';
 
 interface ActiveModalState {
@@ -55,11 +59,39 @@ interface ActiveModalState {
 
 type ToolModal = 'pdf' | 'share' | 'saveTemplate' | 'newVersion' | 'history' | 'duplicate' | 'newPatient' | null;
 
-export default function MealPlannerPage() {
-  const { clients, activeClient, selectClient, updateClient, createClient } = usePatients();
+/** Plan de inicio: el de demostración solo para su paciente de ejemplo; para el resto, vacío. */
+function initialPlanFor(client: Client): MealPlan {
+  if (isDemoAccessEnabled() && client.id === MOCK_INITIAL_PLAN.clientId) return MOCK_INITIAL_PLAN;
+  return emptyPlanFor(client.id, client.fullName, newId('plan-draft'));
+}
+
+/** Se monta con `key={paciente.id}`: al cambiar de paciente el constructor arranca de cero. */
+function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
+  const { clients, selectClient, updateClient, createClient } = usePatients();
   const { toast } = useToast();
-  const editor = usePlanEditor(MOCK_INITIAL_PLAN);
-  const { plan } = editor;
+  const [initialPlan] = useState<MealPlan>(() => initialPlanFor(activeClient));
+  const editor = usePlanEditor(initialPlan);
+  const { plan, loadPlan } = editor;
+  const [planLoading, setPlanLoading] = useState(true);
+
+  // Carga el último plan guardado de este paciente (si existe)
+  useEffect(() => {
+    let cancelled = false;
+    getLatestPlanAction(activeClient.id)
+      .then((res) => {
+        if (!cancelled && res.success && res.plan) loadPlan(res.plan);
+        if (!cancelled && !res.success) toast(`No se pudo cargar el plan guardado: ${res.error}`);
+      })
+      .catch(() => {
+        if (!cancelled) toast('No se pudo cargar el plan guardado. Revisa tu conexión.');
+      })
+      .finally(() => {
+        if (!cancelled) setPlanLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeClient.id, loadPlan, toast]);
 
   const [templates, setTemplates] = useState<PlanTemplate[]>(MOCK_PLAN_TEMPLATES);
   const [toolModal, setToolModal] = useState<ToolModal>(null);
@@ -116,17 +148,37 @@ export default function MealPlannerPage() {
     toast(`Plantilla "${name}" guardada en la biblioteca`);
   };
 
-  const handleDuplicatePlan = (targetClientId: string) => {
+  /** Guarda una copia del plan para el otro paciente y cambia a su constructor, donde se carga. */
+  const handleDuplicatePlan = async (targetClientId: string) => {
     const target = clients.find((c) => c.id === targetClientId);
     if (!target) return;
-    selectClient(target.id);
-    editor.assignToClient(
-      target.id,
-      `Plan para ${target.fullName} (Copia)`,
-      isDemoAccessEnabled() ? target.shareToken : undefined
-    );
     closeTool();
-    toast(`Plan duplicado con éxito para ${target.fullName}`);
+
+    if (target.id === activeClient.id) {
+      toast('Elige un paciente distinto al actual');
+      return;
+    }
+
+    try {
+      const res = await savePlanAction({
+        clientId: target.id,
+        title: `Plan para ${target.fullName} (Copia)`,
+        versionNumber: 1,
+        meals: cloneDeep(plan.meals),
+      });
+      if (!res.success) {
+        toast(`No se pudo duplicar el plan: ${res.error}`);
+        return;
+      }
+      selectClient(target.id);
+      toast(
+        isDemoAccessEnabled()
+          ? `Plan copiado a ${target.fullName} (en modo demostración las copias no se conservan)`
+          : `Plan duplicado con éxito para ${target.fullName}`
+      );
+    } catch {
+      toast('No se pudo duplicar el plan. Revisa tu conexión.');
+    }
   };
 
   const handleSaveNewVersion = (note: string) => {
@@ -317,7 +369,7 @@ export default function MealPlannerPage() {
                     onClick={() => {
                       close();
                       editor.reset();
-                      toast('Plan reiniciado a los valores base de demostración');
+                      toast('Plan reiniciado');
                     }}
                   >
                     Reiniciar plan
@@ -342,11 +394,59 @@ export default function MealPlannerPage() {
           Comidas del día
           <span className="text-sm font-medium text-muted">({plan.meals.length})</span>
         </h2>
-        <Button size="sm" variant="primary" onClick={editor.addMeal}>
-          <Plus className="h-3.5 w-3.5" />
-          Añadir comida
-        </Button>
+        <Popover
+          panelClassName="w-56"
+          triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+          trigger={
+            <>
+              <Plus className="h-3.5 w-3.5" />
+              Añadir comida
+            </>
+          }
+        >
+          {(close) => (
+            <>
+              {MEAL_TYPES.map((type) => (
+                <MenuItem
+                  key={type.name}
+                  onClick={() => {
+                    close();
+                    editor.addMeals([type]);
+                  }}
+                >
+                  {type.name}
+                  <span className="ml-auto text-xs text-muted">{type.time}</span>
+                </MenuItem>
+              ))}
+            </>
+          )}
+        </Popover>
       </div>
+
+      {plan.meals.length === 0 && (
+        <Card className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+          <Utensils className="h-8 w-8 text-subtle" />
+          {planLoading ? (
+            <p className="text-sm text-muted">Cargando plan…</p>
+          ) : (
+            <>
+              <div>
+                <p className="font-semibold text-foreground">Este plan está vacío</p>
+                <p className="text-sm text-muted">
+                  Añade las comidas del día y asigna grupos de intercambio a cada una.
+                </p>
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => editor.addMeals(MEAL_TYPES.filter((t) => ['Desayuno', 'Almuerzo', 'Merienda', 'Cena'].includes(t.name)))}
+              >
+                Crear estructura básica (4 comidas)
+              </Button>
+            </>
+          )}
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {plan.meals.map((meal) => (
@@ -429,4 +529,45 @@ export default function MealPlannerPage() {
       />
     </div>
   );
+}
+
+export default function MealPlannerPage() {
+  const { activeClient, loading, createClient } = usePatients();
+  const { toast } = useToast();
+  const [isNewOpen, setIsNewOpen] = useState(false);
+
+  if (!activeClient) {
+    return (
+      <>
+        <Card className="mx-auto mt-10 flex max-w-lg flex-col items-center gap-3 px-6 py-14 text-center">
+          <Users className="h-8 w-8 text-subtle" />
+          {loading ? (
+            <p className="text-sm text-muted">Cargando pacientes…</p>
+          ) : (
+            <>
+              <div>
+                <p className="font-semibold text-foreground">Aún no tienes pacientes</p>
+                <p className="text-sm text-muted">Crea el primero para empezar a armar su plan de intercambios.</p>
+              </div>
+              <Button variant="primary" onClick={() => setIsNewOpen(true)}>
+                <UserPlus className="h-4 w-4" />
+                Nuevo paciente
+              </Button>
+            </>
+          )}
+        </Card>
+        <NewPatientModal
+          open={isNewOpen}
+          onClose={() => setIsNewOpen(false)}
+          onCreate={async (client, input) => {
+            setIsNewOpen(false);
+            const result = await createClient(client, input);
+            toast(result.ok ? `Paciente "${client.fullName}" creado` : `No se pudo crear el paciente: ${result.error}`);
+          }}
+        />
+      </>
+    );
+  }
+
+  return <PlannerWorkspace key={activeClient.id} activeClient={activeClient} />;
 }

@@ -4,7 +4,8 @@ import {
   removeItemFromMeal,
   addItemToMeal,
   setItemSuggestedFood,
-  addDefaultMeal,
+  addEmptyMeals,
+  MEAL_TYPES,
   applyTemplate,
   archiveCurrentVersion,
   restoreVersionMeals,
@@ -72,15 +73,21 @@ describe('Plan operations - inmutabilidad y edición', () => {
     expect(cleared.meals[0].items[0].selectedFoodId).toBeUndefined();
   });
 
-  it('añade una comida por defecto con un ítem', () => {
+  it('añade comidas vacías al final sin tocar las existentes', () => {
     const plan = basePlan();
-    const next = addDefaultMeal(plan);
+    const next = addEmptyMeals(plan, [{ name: 'Cena', time: '20:00' }, { name: 'Colación Nocturna' }]);
 
-    expect(next.meals).toHaveLength(plan.meals.length + 1);
-    const added = next.meals[next.meals.length - 1];
-    expect(added.items).toHaveLength(1);
-    expect(added.items[0].groupId).toBe('frutas');
-    expect(plan.meals.some((m) => m.id === added.id)).toBe(false);
+    expect(next.meals).toHaveLength(plan.meals.length + 2);
+    const [cena, colacion] = next.meals.slice(-2);
+    expect(cena).toMatchObject({ name: 'Cena', time: '20:00', items: [] });
+    expect(colacion).toMatchObject({ name: 'Colación Nocturna', time: undefined, items: [] });
+    expect(cena.id).not.toBe(colacion.id);
+    expect(next.meals.slice(0, plan.meals.length)).toEqual(plan.meals);
+  });
+
+  it('los tipos de comida tienen hora válida y nombres únicos', () => {
+    expect(new Set(MEAL_TYPES.map((t) => t.name)).size).toBe(MEAL_TYPES.length);
+    for (const t of MEAL_TYPES) expect(t.time).toMatch(/^([01]\d|2[0-3]):[0-5]\d$/);
   });
 
   it('los cambios se reflejan en los totales calculados por el motor', () => {

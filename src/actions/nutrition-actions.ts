@@ -17,6 +17,7 @@ import { Client, MealPlan } from '@/types/nutrition';
 import { revalidatePath } from 'next/cache';
 import { randomBytes } from 'node:crypto';
 import { mapSharedPlan } from '@/core/shared-plan';
+import { mapStoredPlan } from '@/core/stored-plan';
 
 /** Token de acceso del portal: 32 bytes aleatorios (43 caracteres URL-safe). */
 function generateShareToken(): string {
@@ -84,8 +85,12 @@ export async function getClientsAction(): Promise<{ success: boolean; data: Clie
       .eq('nutritionist_id', user.id)
       .order('created_at', { ascending: false });
 
-    if (error || !dbClients || dbClients.length === 0) {
-      return { success: true, data: MOCK_CLIENTS };
+    if (error) {
+      return { success: false, data: [] };
+    }
+    if (!dbClients || dbClients.length === 0) {
+      // Sin pacientes reales: los de demostración solo se muestran si el acceso demo está habilitado
+      return { success: true, data: isDemoDataAllowed() ? MOCK_CLIENTS : [] };
     }
 
     const mappedClients: Client[] = dbClients.map((c) => {
@@ -126,7 +131,7 @@ export async function getClientsAction(): Promise<{ success: boolean; data: Clie
 
     return { success: true, data: mappedClients };
   } catch {
-    return { success: true, data: MOCK_CLIENTS };
+    return { success: false, data: [] };
   }
 }
 
@@ -383,6 +388,41 @@ export async function savePlanAction(rawInput: unknown) {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Error al guardar el plan';
     return { success: false, error: msg };
+  }
+}
+
+/**
+ * Último plan guardado de un paciente (con su historial de versiones), o `plan: undefined`
+ * si todavía no tiene ninguno. Solo lee planes de la nutricionista autenticada (RLS + filtro).
+ */
+export async function getLatestPlanAction(
+  clientId: string
+): Promise<{ success: boolean; plan?: MealPlan; error?: string }> {
+  if (!UUID_RE.test(clientId)) return { success: true }; // paciente de demostración o aún sin guardar
+
+  const user = await getAuthenticatedUser();
+  if (user.isDemo) return { success: true };
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('meal_plans')
+      .select(
+        '*, plan_versions(*, plan_meals(*, plan_items(*)))'
+      )
+      .eq('client_id', clientId)
+      .eq('nutritionist_id', user.id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) return { success: false, error: error.message };
+    if (!data) return { success: true };
+
+    const plan = mapStoredPlan(data);
+    return plan ? { success: true, plan } : { success: false, error: 'El plan guardado tiene un formato inesperado' };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : 'Error al cargar el plan' };
   }
 }
 

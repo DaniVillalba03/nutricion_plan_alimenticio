@@ -45,14 +45,20 @@ export function setItemSuggestedFood(
   return mapItem(plan, mealId, itemId, (item) => ({ ...item, selectedFoodId: foodId }));
 }
 
-export function addDefaultMeal(plan: MealPlan): MealPlan {
-  const meal: MealPlanMeal = {
-    id: newId('meal'),
-    name: 'Media Mañana / Colación',
-    time: '10:30',
-    items: [{ id: newId('item'), groupId: 'frutas', exchangeCount: 1.0 }],
-  };
-  return { ...plan, meals: [...plan.meals, meal] };
+/** Tipos de comida disponibles para añadir a un plan (nombre y hora sugerida). */
+export const MEAL_TYPES: { name: string; time: string }[] = [
+  { name: 'Desayuno', time: '07:30' },
+  { name: 'Media Mañana', time: '10:00' },
+  { name: 'Almuerzo', time: '12:30' },
+  { name: 'Merienda', time: '16:00' },
+  { name: 'Cena', time: '20:00' },
+  { name: 'Colación Nocturna', time: '22:00' },
+];
+
+/** Añade comidas vacías (sin grupos) al final del plan. */
+export function addEmptyMeals(plan: MealPlan, defs: { name: string; time?: string }[]): MealPlan {
+  const meals: MealPlanMeal[] = defs.map((d) => ({ id: newId('meal'), name: d.name, time: d.time, items: [] }));
+  return { ...plan, meals: [...plan.meals, ...meals] };
 }
 
 /** Reemplaza las comidas del plan por una copia de la plantilla, con ids nuevos. */

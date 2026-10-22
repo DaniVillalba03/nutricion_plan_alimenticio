@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, renderHook, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { Client } from '@/types/nutrition';
@@ -70,7 +70,7 @@ describe('PatientsProvider', () => {
     expect(res?.ok).toBe(true);
     expect(createClientAction).toHaveBeenCalledWith(input);
     expect(result.current.clients.map((c) => c.id)).toContain(client.id);
-    expect(result.current.activeClient.id).toBe(client.id);
+    expect(result.current.activeClient?.id).toBe(client.id);
     expect(getClientsAction).toHaveBeenCalledTimes(1); // solo la hidratación inicial
   });
 
@@ -102,7 +102,7 @@ describe('PatientsProvider', () => {
     });
 
     expect(result.current.clients).toEqual(official);
-    expect(result.current.activeClient.id).toBe('db-uuid-1');
+    expect(result.current.activeClient?.id).toBe('db-uuid-1');
   });
 
   it('updateClient aplica el parche solo al paciente indicado', async () => {
@@ -119,6 +119,43 @@ describe('PatientsProvider', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => renderHook(() => usePatients())).toThrow(/PatientsProvider/);
     spy.mockRestore();
+  });
+});
+
+describe('PatientsProvider con Supabase configurado (sin acceso demo)', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://abc.supabase.co');
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'clave-real');
+    vi.stubEnv('NEXT_PUBLIC_ENABLE_DEMO_ACCESS', '');
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it('no muestra pacientes de demostración: empieza vacío y sin paciente activo', async () => {
+    getClientsAction.mockResolvedValue({ success: true, data: [] });
+    const { result } = renderHook(() => usePatients(), { wrapper });
+
+    expect(result.current.clients).toEqual([]);
+    expect(result.current.activeClient).toBeNull();
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.clients).toEqual([]);
+    expect(result.current.activeClient).toBeNull();
+  });
+
+  it('muestra solo los pacientes reales y selecciona el primero', async () => {
+    const real = [{ ...MOCK_CLIENTS[0], id: 'real-1', fullName: 'Juan Perez' }];
+    getClientsAction.mockResolvedValue({ success: true, data: real });
+    const { result } = renderHook(() => usePatients(), { wrapper });
+
+    await waitFor(() => expect(result.current.clients).toEqual(real));
+    expect(result.current.activeClient?.id).toBe('real-1');
+  });
+
+  it('si la carga falla no inventa pacientes', async () => {
+    getClientsAction.mockResolvedValue({ success: false, data: [] });
+    const { result } = renderHook(() => usePatients(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.clients).toEqual([]);
   });
 });
 

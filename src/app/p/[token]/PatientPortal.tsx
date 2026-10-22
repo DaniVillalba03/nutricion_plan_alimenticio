@@ -18,6 +18,12 @@ interface ChangeModalState {
   currentFoodId?: string;
 }
 
+/** Primer nombre, sin tratamientos como "Lic." o "Ing.". */
+function firstName(fullName: string): string {
+  const withoutTitle = fullName.trim().replace(/^(lic|licda|ing|dr|dra|sr|sra)\.?\s+/i, '');
+  return withoutTitle.split(/\s+/)[0] || fullName;
+}
+
 function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan }) {
   const { toast } = useToast();
 
@@ -112,7 +118,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
             <div>
               <p className="text-xs font-medium text-emerald-200">Plan personalizado</p>
               <h1 className="mt-0.5 text-xl font-bold tracking-tight">
-                ¡Hola, {client.fullName.split(' ')[1] || client.fullName}!
+                ¡Hola, {firstName(client.fullName)}!
               </h1>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/10 px-2.5 py-1 text-xs font-semibold">

@@ -4,7 +4,7 @@ import { useCallback, useState } from 'react';
 import type { MealPlan, PlanTemplate, PlanVersion } from '@/types/nutrition';
 import { newId } from '@/lib/utils';
 import {
-  addDefaultMeal,
+  addEmptyMeals,
   addItemToMeal,
   applyTemplate,
   archiveCurrentVersion,
@@ -37,7 +37,12 @@ export function usePlanEditor(initialPlan: MealPlan) {
     setPlan((prev) => setItemSuggestedFood(prev, mealId, itemId, foodId));
   }, []);
 
-  const addMeal = useCallback(() => setPlan((prev) => addDefaultMeal(prev)), []);
+  const addMeals = useCallback((defs: { name: string; time?: string }[]) => {
+    setPlan((prev) => addEmptyMeals(prev, defs));
+  }, []);
+
+  /** Reemplaza el plan completo (al cargar el guardado de un paciente o empezar uno vacío). */
+  const loadPlan = useCallback((next: MealPlan) => setPlan(next), []);
 
   const reset = useCallback(() => setPlan(initialPlan), [initialPlan]);
 
@@ -79,7 +84,8 @@ export function usePlanEditor(initialPlan: MealPlan) {
     removeItem,
     addItem,
     setSuggestedFood,
-    addMeal,
+    addMeals,
+    loadPlan,
     reset,
     loadTemplate,
     saveNewVersion,

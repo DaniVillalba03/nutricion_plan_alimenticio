@@ -29,7 +29,7 @@ describe('usePlanEditor', () => {
 
   it('reiniciar vuelve al plan inicial', () => {
     const { result } = setup();
-    act(() => result.current.addMeal());
+    act(() => result.current.addMeals([{ name: 'Cena', time: '20:00' }]));
     expect(result.current.plan.meals).toHaveLength(MOCK_INITIAL_PLAN.meals.length + 1);
 
     act(() => result.current.reset());
@@ -58,12 +58,21 @@ describe('usePlanEditor', () => {
       result.current.saveNewVersion('base');
     });
     const version = result.current.plan.versions![0];
-    act(() => result.current.addMeal());
+    act(() => result.current.addMeals([{ name: 'Cena' }]));
 
     act(() => result.current.restoreVersion(version));
 
     expect(result.current.plan.meals).toEqual(version.meals);
     expect(result.current.plan.notes).toContain('Restaurado de Versión');
+  });
+
+  it('loadPlan reemplaza el plan completo', () => {
+    const { result } = setup();
+    const other = { ...MOCK_INITIAL_PLAN, id: 'otro', title: 'Plan guardado', meals: [] };
+
+    act(() => result.current.loadPlan(other));
+
+    expect(result.current.plan).toBe(other);
   });
 
   it('carga una plantilla, reasigna al paciente y actualiza el acceso compartido', () => {

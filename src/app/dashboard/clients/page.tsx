@@ -5,12 +5,24 @@ import { UserPlus } from 'lucide-react';
 import { usePatients } from '@/components/patients/PatientsProvider';
 import { NewPatientModal } from '@/components/patients/NewPatientModal';
 import { PatientCard } from '@/components/patients/PatientCard';
-import { Button, Card, PageHeader, useToast } from '@/components/ui';
+import { Button, Card, Modal, PageHeader, useToast } from '@/components/ui';
+import type { Client } from '@/types/nutrition';
 
 export default function ClientsPage() {
-  const { clients, loading, selectClient, createClient } = usePatients();
+  const { clients, loading, selectClient, createClient, deleteClient } = usePatients();
   const { toast } = useToast();
   const [isNewOpen, setIsNewOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<Client | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const confirmDelete = async () => {
+    if (!toDelete) return;
+    setDeleting(true);
+    const result = await deleteClient(toDelete.id);
+    setDeleting(false);
+    toast(result.ok ? `Paciente "${toDelete.fullName}" eliminado` : `No se pudo eliminar: ${result.error}`);
+    if (result.ok) setToDelete(null);
+  };
 
   return (
     <div className="space-y-10">
@@ -46,11 +58,35 @@ export default function ClientsPage() {
         <Card>
           <ul className="divide-y divide-border">
             {clients.map((client) => (
-              <PatientCard key={client.id} client={client} onOpenPlan={selectClient} />
+              <PatientCard key={client.id} client={client} onOpenPlan={selectClient} onDelete={setToDelete} />
             ))}
           </ul>
         </Card>
       )}
+
+      <Modal
+        open={toDelete !== null}
+        onClose={() => !deleting && setToDelete(null)}
+        title="¿Eliminar paciente?"
+        size="sm"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setToDelete(null)} disabled={deleting}>
+              Cancelar
+            </Button>
+            <Button variant="primary" className="bg-danger text-white hover:bg-danger" onClick={confirmDelete} disabled={deleting}>
+              {deleting ? 'Eliminando…' : 'Eliminar paciente'}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-[15px] text-foreground">
+          Vas a eliminar a <strong>{toDelete?.fullName}</strong> junto con todos sus planes y versiones.
+        </p>
+        <p className="mt-2 text-sm text-muted">
+          El enlace que le compartiste dejará de funcionar. Esta acción no se puede deshacer.
+        </p>
+      </Modal>
 
       <NewPatientModal
         open={isNewOpen}

@@ -8,11 +8,13 @@ import { MOCK_CLIENTS } from '@/lib/mock-data';
 const getClientsAction = vi.fn();
 const createClientAction = vi.fn();
 const getLatestPlanAction = vi.fn();
+const deleteClientAction = vi.fn();
 
 vi.mock('@/actions/nutrition-actions', () => ({
   getClientsAction: (...args: unknown[]) => getClientsAction(...args),
   createClientAction: (...args: unknown[]) => createClientAction(...args),
   getLatestPlanAction: (...args: unknown[]) => getLatestPlanAction(...args),
+  deleteClientAction: (...args: unknown[]) => deleteClientAction(...args),
 }));
 
 import { PatientsProvider, usePatients } from '../PatientsProvider';
@@ -40,6 +42,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => <PatientsProvid
 beforeEach(() => {
   getClientsAction.mockReset().mockResolvedValue({ success: true, data: MOCK_CLIENTS });
   createClientAction.mockReset();
+  deleteClientAction.mockReset().mockResolvedValue({ success: true });
   getLatestPlanAction.mockReset().mockResolvedValue({ success: true });
 });
 
@@ -50,6 +53,27 @@ describe('PatientsProvider', () => {
 
     const { result } = renderHook(() => usePatients(), { wrapper });
     await waitFor(() => expect(result.current.clients).toEqual(remote));
+  });
+
+  it('elimina al paciente de la lista solo cuando el servidor confirma', async () => {
+    const { result } = renderHook(() => usePatients(), { wrapper });
+    await act(async () => {});
+    const id = MOCK_CLIENTS[0].id;
+
+    deleteClientAction.mockResolvedValueOnce({ success: false, error: 'sin permiso' });
+    let res = { ok: true } as { ok: boolean; error?: string };
+    await act(async () => {
+      res = await result.current.deleteClient(id);
+    });
+    expect(res).toEqual({ ok: false, error: 'sin permiso' });
+    expect(result.current.clients.some((c) => c.id === id)).toBe(true);
+
+    await act(async () => {
+      res = await result.current.deleteClient(id);
+    });
+    expect(res.ok).toBe(true);
+    expect(deleteClientAction).toHaveBeenLastCalledWith(id);
+    expect(result.current.clients.some((c) => c.id === id)).toBe(false);
   });
 
   it('conserva los datos locales si la carga falla', async () => {

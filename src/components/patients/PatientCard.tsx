@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Trash2 } from 'lucide-react';
 import type { Client } from '@/types/nutrition';
 import { buttonClasses } from '@/components/ui';
 import { cn } from '@/lib/utils';
@@ -8,12 +8,14 @@ import { cn } from '@/lib/utils';
 interface PatientCardProps {
   client: Client;
   onOpenPlan: (clientId: string) => void;
+  /** Si se pasa, muestra el botón de eliminar (la confirmación la gestiona quien lo usa). */
+  onDelete?: (client: Client) => void;
 }
 
 const nf = new Intl.NumberFormat('es-PY');
 
 /** Una fila de la lista de pacientes: datos a la izquierda, metas y acción a la derecha. */
-export function PatientCard({ client, onOpenPlan }: PatientCardProps) {
+export function PatientCard({ client, onOpenPlan, onDelete }: PatientCardProps) {
   const details = [
     `${client.age} años`,
     client.gender.charAt(0).toUpperCase() + client.gender.slice(1),
@@ -63,6 +65,17 @@ export function PatientCard({ client, onOpenPlan }: PatientCardProps) {
           Abrir plan
           <ArrowRight className="h-4 w-4" />
         </Link>
+
+        {onDelete && (
+          <button
+            type="button"
+            onClick={() => onDelete(client)}
+            aria-label={`Eliminar a ${client.fullName}`}
+            className="-ml-3 shrink-0 rounded-full p-2 text-muted transition-colors hover:bg-danger-soft hover:text-danger"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </li>
   );

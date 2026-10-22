@@ -235,6 +235,45 @@ export async function createClientAction(rawInput: unknown) {
   }
 }
 
+/**
+ * Elimina un paciente y, en cascada (FK `ON DELETE CASCADE`), sus planes, versiones y reglas.
+ * Los enlaces del portal de esos planes dejan de funcionar. La política RLS de `clients`
+ * ya limita el borrado a los pacientes de la nutricionista autenticada.
+ */
+export async function deleteClientAction(clientId: string): Promise<{ success: boolean; error?: string }> {
+  if (typeof clientId !== 'string' || clientId.length === 0) {
+    return { success: false, error: 'Paciente no válido' };
+  }
+
+  const user = await getAuthenticatedUser();
+  if (!isSupabaseConfigured() || user.isDemo) {
+    // Modo demostración: no hay nada que borrar en la base
+    return { success: true };
+  }
+
+  // Los pacientes de demostración (ids no UUID) no existen en la base
+  if (!UUID_RE.test(clientId)) return { success: true };
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('clients')
+      .delete()
+      .eq('id', clientId)
+      .eq('nutritionist_id', user.id)
+      .select('id');
+
+    if (error) return { success: false, error: error.message };
+    if (!data || data.length === 0) return { success: false, error: 'No se encontró el paciente' };
+
+    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/clients');
+    return { success: true };
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : 'Error inesperado' };
+  }
+}
+
 // ==============================================================================
 // 2. GESTIÓN DE PLANES Y VERSIONADO
 // ==============================================================================

@@ -30,7 +30,7 @@ export function Brand({ className, size = 'md', onDark }: BrandProps) {
         className={cn(
           'font-bold leading-none tracking-[-0.045em]',
           s.text,
-          onDark ? 'text-[#eaf3ed]' : 'text-foreground'
+          onDark ? 'text-[#eceef1]' : 'text-foreground'
         )}
       >
         NutriPlan

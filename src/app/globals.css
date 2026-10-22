@@ -16,18 +16,18 @@
 :root {
   color-scheme: light;
 
-  --background: #fafbf8;
-  --foreground: #0e1a12;
+  --background: #f6f7f8;
+  --foreground: #101418;
 
   --surface: #ffffff;
-  --surface-muted: #f2f4ef;
+  --surface-muted: #eff1f3;
   --surface-elevated: #ffffff;
 
-  --border: #e4e8e1;
-  --border-strong: #cfd5cb;
+  --border: #e2e5e9;
+  --border-strong: #cdd2d8;
 
-  --muted: #4f5c53;
-  --subtle: #7a857c;
+  --muted: #535b64;
+  --subtle: #7d858e;
 
   /* Marca: verde vivo para rellenos; verde profundo para texto resaltado */
   --primary: #1fbf4a;
@@ -38,9 +38,9 @@
   --primary-foreground: #06140a;
 
   /* Tinta: botones y énfasis oscuros */
-  --accent: #06140a;
-  --accent-hover: #1d2d22;
-  --accent-foreground: #fafbf8;
+  --accent: #0d1117;
+  --accent-hover: #232a33;
+  --accent-foreground: #f6f7f8;
 
   --danger: #c8351a;
   --danger-soft: #ffece6;
@@ -59,8 +59,8 @@
   --macro-pro: #e0553b;
   --macro-lip: #3a7fc8;
 
-  --grid-line: rgb(8 20 12 / 0.055);
-  --glow: rgb(31 191 74 / 0.16);
+  --glow-cool: rgb(70 110 220 / 0.07);
+  --glow: rgb(31 191 74 / 0.10);
 
   --ring: #1fbf4a;
   --overlay: rgb(6 20 10 / 0.5);
@@ -69,18 +69,18 @@
 .dark {
   color-scheme: dark;
 
-  --background: #060d08;
-  --foreground: #eaf3ed;
+  --background: #0a0b0d;
+  --foreground: #eceef1;
 
-  --surface: #0d1710;
-  --surface-muted: #131f17;
-  --surface-elevated: #101b13;
+  --surface: #121316;
+  --surface-muted: #1a1c20;
+  --surface-elevated: #16181c;
 
-  --border: #1d2b21;
-  --border-strong: #2e4034;
+  --border: #25282d;
+  --border-strong: #363b42;
 
-  --muted: #9db0a2;
-  --subtle: #6a7d6f;
+  --muted: #a0a6ae;
+  --subtle: #6b727b;
 
   --primary: #2ad15a;
   --primary-hover: #4ae274;
@@ -89,9 +89,9 @@
   --primary-soft-foreground: #7beb9c;
   --primary-foreground: #04120a;
 
-  --accent: #eaf3ed;
+  --accent: #eceef1;
   --accent-hover: #ffffff;
-  --accent-foreground: #060d08;
+  --accent-foreground: #0a0b0d;
 
   --danger: #ef6a52;
   --danger-soft: rgb(239 106 82 / 0.14);
@@ -109,8 +109,8 @@
   --macro-pro: #ef7a62;
   --macro-lip: #6aa5e8;
 
-  --grid-line: rgb(190 255 210 / 0.05);
-  --glow: rgb(42 209 90 / 0.14);
+  --glow-cool: rgb(90 130 240 / 0.08);
+  --glow: rgb(42 209 90 / 0.09);
 
   --ring: #2ad15a;
   --overlay: rgb(0 0 0 / 0.7);
@@ -189,22 +189,13 @@
   text-transform: uppercase;
 }
 
-/* Fondo de cabecera: grilla finísima que se desvanece y un halo verde difuso */
+/* Fondo de cabecera: degradado suave (verde de marca + un tono frío que lo diluye), sin grilla */
 @utility bg-hero {
   background-image:
-    radial-gradient(60% 55% at 50% 0%, var(--glow), transparent 70%),
-    linear-gradient(var(--grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    44px 44px,
-    44px 44px;
-  background-position:
-    0 0,
-    -1px -1px,
-    -1px -1px;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+    radial-gradient(55% 60% at 38% 0%, var(--glow), transparent 72%),
+    radial-gradient(45% 55% at 88% 0%, var(--glow-cool), transparent 70%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 100%);
 }
 
 @layer base {

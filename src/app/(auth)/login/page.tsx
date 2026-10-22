@@ -101,31 +101,30 @@ function LoginForm() {
 
   return (
     <div className="grid min-h-screen bg-background text-foreground lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-      {/* Panel de marca: verde casi negro con grilla y halo, como un cartel */}
-      <aside className="relative hidden flex-col justify-between overflow-hidden bg-[#06140a] p-12 text-[#eaf3ed] lg:flex">
+      {/* Panel de marca: grafito con un degradado suave (verde de marca y un tono frío) */}
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-[#0c0d10] p-12 text-[#eceef1] lg:flex">
         <div
           className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage:
-              'radial-gradient(60% 50% at 30% 100%, rgb(31 191 74 / 0.28), transparent 70%), linear-gradient(rgb(190 255 210 / 0.06) 1px, transparent 1px), linear-gradient(90deg, rgb(190 255 210 / 0.06) 1px, transparent 1px)',
-            backgroundSize: '100% 100%, 44px 44px, 44px 44px',
+              'radial-gradient(60% 55% at 22% 100%, rgb(31 191 74 / 0.20), transparent 70%), radial-gradient(50% 50% at 95% 0%, rgb(90 130 240 / 0.14), transparent 70%)',
           }}
           aria-hidden="true"
         />
         <Brand size="md" onDark className="relative" />
         <div className="relative max-w-lg">
-          <p className="mono-label mb-5 flex items-center gap-2 text-[#9db0a2]">
+          <p className="mono-label mb-5 flex items-center gap-2 text-[#a3a8b0]">
             <span className="h-1.5 w-1.5 rounded-full bg-[#2ad15a]" aria-hidden="true" />
             Nutrición por intercambios
           </p>
           <h2 className="text-[52px] font-bold leading-[1.02] tracking-[-0.045em]">
             Planes claros, con alimentos de <span className="text-[#2ad15a]">Paraguay</span>.
           </h2>
-          <p className="mt-6 max-w-md text-base text-[#9db0a2]">
+          <p className="mt-6 max-w-md text-base text-[#a3a8b0]">
             Arma el plan de cada paciente en minutos y compártelo en un enlace que se actualiza solo.
           </p>
         </div>
-        <p className="mono-label relative text-[#6a7d6f]">Lic. Laura Molinas · Reg. Prof. 6020</p>
+        <p className="mono-label relative text-[#737982]">Lic. Laura Molinas · Reg. Prof. 6020</p>
       </aside>
 
       <main className="flex items-center justify-center px-6 py-12">

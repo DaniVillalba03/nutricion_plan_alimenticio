@@ -72,7 +72,7 @@ export function PatientSwitcher({ clients, activeClient, onSelect, onCreate }: P
                   <span className="block truncate text-sm font-medium text-foreground">{c.fullName}</span>
                   <span className="block text-[13px] tabular-nums text-muted">{c.targetCalories} kcal</span>
                 </span>
-                {c.id === activeClient.id && <Check className="h-4 w-4 text-primary" />}
+                {c.id === activeClient.id && <Check className="h-4 w-4 text-foreground" />}
               </button>
             ))}
           </div>
@@ -83,7 +83,7 @@ export function PatientSwitcher({ clients, activeClient, onSelect, onCreate }: P
                 close();
                 onCreate();
               }}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary-soft"
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted"
             >
               <UserPlus className="h-4 w-4" />
               Nuevo paciente

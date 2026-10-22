@@ -65,7 +65,7 @@ export function ExchangeStepper({ value, onChange, label }: ExchangeStepperProps
                   }}
                   className={cn(
                     'h-9 rounded-md text-[15px] tabular-nums transition-colors',
-                    current ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-surface-muted'
+                    current ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-surface-muted'
                   )}
                 >
                   {formatFriendlyFraction(preset)}

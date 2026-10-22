@@ -113,7 +113,7 @@ export function SharePlanModal({ isOpen, onClose, client, plan, onUpdateShareSet
                 className={cn(
                   'rounded-xl border p-2.5 text-center text-xs font-semibold transition-colors',
                   expiryOption === opt.value
-                    ? 'border-primary bg-primary-soft text-primary-soft-foreground'
+                    ? 'border-foreground bg-surface-muted text-foreground'
                     : 'border-border text-muted hover:bg-surface-muted'
                 )}
               >

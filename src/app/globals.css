@@ -5,8 +5,8 @@
 /*
  * Sistema de diseño
  * -----------------
- * Base neutra y limpia (blanco y tinta casi negra, con un apenas verdoso), un único verde
- * esmeralda para la acción y titulares serif para la elegancia. La jerarquía la dan el
+ * Grises neutros (sin tinte), acción principal en tinta y titulares serif para la elegancia.
+ * El verde de la marca es un acento escaso: significa éxito o selección, no decora. La jerarquía la dan el
  * tamaño, el peso y el espacio (no las cajas ni los colores). Los colores de los
  * macronutrientes son nítidos y solo se usan para datos, nunca como decoración.
  *
@@ -16,27 +16,29 @@
 :root {
   color-scheme: light;
 
-  --background: #f6f8f7;
-  --foreground: #0f1714;
+  --background: #f8f8f9;
+  --foreground: #111113;
 
   --surface: #ffffff;
-  --surface-muted: #eef2f0;
+  --surface-muted: #f0f0f2;
   --surface-elevated: #ffffff;
 
-  --border: #e1e6e3;
-  --border-strong: #cdd5d1;
+  --border: #e4e4e8;
+  --border-strong: #d1d1d8;
 
-  --muted: #56635d;
-  --subtle: #85918b;
+  --muted: #5d5d67;
+  --subtle: #8a8a95;
 
-  --primary: #0b7d58;
-  --primary-hover: #086446;
-  --primary-soft: #e0f3ea;
-  --primary-soft-foreground: #08603f;
+  /* La marca se usa con moderación: estados de éxito, selección y la firma "PY" */
+  --primary: #167a58;
+  --primary-hover: #0f6447;
+  --primary-soft: #e4f2ec;
+  --primary-soft-foreground: #0d5e41;
   --primary-foreground: #ffffff;
 
-  --accent: #0f1714;
-  --accent-hover: #26302b;
+  /* La acción principal es tinta: negro en claro, blanco en oscuro */
+  --accent: #111113;
+  --accent-hover: #2b2b30;
   --accent-foreground: #ffffff;
 
   --danger: #c93a32;
@@ -51,40 +53,40 @@
   --info-soft: #e5f0fa;
   --info-soft-foreground: #1f568f;
 
-  /* Macronutrientes: colores nítidos, solo para datos */
-  --macro-cho: #e0a020;
-  --macro-pro: #e0553b;
-  --macro-lip: #3a7fc8;
+  /* Macronutrientes: nítidos, solo para datos */
+  --macro-cho: #dca02b;
+  --macro-pro: #d9573f;
+  --macro-lip: #4380c4;
 
-  --ring: #0b7d58;
-  --overlay: rgb(9 16 13 / 0.5);
+  --ring: #3f3f46;
+  --overlay: rgb(10 10 12 / 0.5);
 }
 
 .dark {
   color-scheme: dark;
 
-  --background: #0b0f0d;
-  --foreground: #eef3f0;
+  --background: #0a0a0b;
+  --foreground: #f2f2f4;
 
-  --surface: #121715;
-  --surface-muted: #1a201d;
-  --surface-elevated: #171d1a;
+  --surface: #111113;
+  --surface-muted: #1a1a1d;
+  --surface-elevated: #161619;
 
-  --border: #232a26;
-  --border-strong: #35403a;
+  --border: #242429;
+  --border-strong: #36363d;
 
-  --muted: #9ba8a1;
-  --subtle: #67736d;
+  --muted: #a1a1ab;
+  --subtle: #6d6d78;
 
-  --primary: #2fbf8a;
-  --primary-hover: #4bd6a3;
-  --primary-soft: rgb(47 191 138 / 0.14);
-  --primary-soft-foreground: #7fe0b9;
+  --primary: #3fb98c;
+  --primary-hover: #5bcfa3;
+  --primary-soft: rgb(63 185 140 / 0.13);
+  --primary-soft-foreground: #82ddb9;
   --primary-foreground: #03150d;
 
-  --accent: #eef3f0;
+  --accent: #f2f2f4;
   --accent-hover: #ffffff;
-  --accent-foreground: #0b0f0d;
+  --accent-foreground: #0a0a0b;
 
   --danger: #ef6a60;
   --danger-soft: rgb(239 106 96 / 0.14);
@@ -98,12 +100,12 @@
   --info-soft: rgb(90 160 230 / 0.14);
   --info-soft-foreground: #8fbff0;
 
-  --macro-cho: #f0b43c;
-  --macro-pro: #f2735a;
-  --macro-lip: #5aa0e6;
+  --macro-cho: #eab44a;
+  --macro-pro: #ef7a62;
+  --macro-lip: #6aa5e8;
 
-  --ring: #2fbf8a;
-  --overlay: rgb(2 6 4 / 0.7);
+  --ring: #a1a1aa;
+  --overlay: rgb(0 0 0 / 0.7);
 }
 
 @theme inline {

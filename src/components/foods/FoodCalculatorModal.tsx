@@ -178,10 +178,10 @@ export function FoodCalculatorModal({ open, onClose, onCreate }: FoodCalculatorM
           </div>
         </div>
 
-        <div className="space-y-3 rounded-xl bg-primary-soft p-4">
+        <div className="space-y-3 rounded-xl bg-surface-muted/60 p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[13px] font-medium text-primary-soft-foreground">Grupo sugerido</p>
+              <p className="text-[13px] font-medium text-muted">Grupo sugerido</p>
               <h4 className="text-lg font-bold text-foreground">{suggestion.suggestedGroup.name}</h4>
             </div>
             <Badge tone="primary">Confianza {suggestion.confidence}</Badge>
@@ -215,7 +215,7 @@ export function FoodCalculatorModal({ open, onClose, onCreate }: FoodCalculatorM
                 Basado en {suggestion.suggestedGroup.referenceMacros.calories} kcal de {suggestion.suggestedGroup.shortName}
               </p>
             </div>
-            <span className="text-xl font-bold text-primary">{suggestion.baseGramsFor1Exchange}g</span>
+            <span className="text-xl font-semibold text-foreground">{suggestion.baseGramsFor1Exchange}g</span>
           </div>
 
           <p className="text-xs italic text-muted">{suggestion.reason}</p>

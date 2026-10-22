@@ -252,7 +252,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
   return (
     <div>
       <header>
-        <p className="mb-2 text-[13px] font-medium text-primary">Constructor de planes</p>
+        <p className="mb-2 text-[13px] font-medium text-muted">Constructor de planes</p>
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
             <PatientSwitcher

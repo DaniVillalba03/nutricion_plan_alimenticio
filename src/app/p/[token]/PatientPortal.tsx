@@ -129,7 +129,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
               aria-valuemin={0}
               aria-valuemax={100}
             >
-              <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${adherencePercent}%` }} />
+              <div className="h-full rounded-full bg-foreground transition-all duration-300" style={{ width: `${adherencePercent}%` }} />
             </div>
           </div>
         </section>
@@ -149,7 +149,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                   className={cn(
                     'inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm font-medium transition-colors',
                     meal.isCompleted
-                      ? 'border-primary bg-primary text-primary-foreground'
+                      ? 'border-foreground bg-foreground text-background'
                       : 'border-border-strong text-muted hover:bg-surface-muted hover:text-foreground'
                   )}
                 >
@@ -190,7 +190,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                           {group.shortName} · {formatFriendlyFraction(item.exchangeCount)} int
                         </p>
                         <p className="mt-1 text-lg font-medium leading-snug">{selectedFood?.name || 'Alimento a elección'}</p>
-                        <p className="mt-0.5 text-[15px] text-primary">
+                        <p className="mt-0.5 text-[15px] text-foreground">
                           <span className="font-medium">
                             {friendlyHouseholdQty} {selectedFood?.householdUnit}
                           </span>
@@ -255,12 +255,12 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                       onClick={() => handleSelectFood(eq.food.id)}
                       className={cn(
                         '-mx-2 flex w-[calc(100%+1rem)] items-center justify-between gap-3 rounded-lg px-2 py-3 text-left transition-colors hover:bg-surface-muted',
-                        isCurrent && 'bg-primary-soft hover:bg-primary-soft'
+                        isCurrent && 'bg-surface-muted'
                       )}
                     >
                       <span className="min-w-0">
                         <span className="block truncate text-[15px] font-medium">{eq.food.name}</span>
-                        <span className="block text-sm text-primary">{eq.formattedHousehold}</span>
+                        <span className="block text-sm text-muted">{eq.formattedHousehold}</span>
                       </span>
                       {isCurrent ? (
                         <span className="shrink-0 text-[13px] font-medium text-primary">Actual</span>

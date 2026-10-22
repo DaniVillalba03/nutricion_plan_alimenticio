@@ -107,7 +107,7 @@ export function Sidebar() {
                     : 'text-muted hover:bg-surface-muted/60 hover:text-foreground'
                 )}
               >
-                <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-primary' : 'text-subtle')} strokeWidth={1.75} />
+                <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-foreground' : 'text-subtle')} strokeWidth={1.75} />
                 {item.label}
               </Link>
             );

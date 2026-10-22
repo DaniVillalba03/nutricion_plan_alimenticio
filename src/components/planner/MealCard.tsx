@@ -74,7 +74,7 @@ export function MealCard({
       align="right"
       panelClassName="w-72"
       triggerLabel="Añadir grupo a esta comida"
-      triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-primary transition-colors hover:bg-primary-soft"
+      triggerClassName="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-foreground transition-colors hover:bg-surface-muted"
       trigger={
         <>
           <Plus className="h-3.5 w-3.5" />
@@ -147,7 +147,7 @@ export function MealCard({
                     <button
                       type="button"
                       onClick={() => onOpenEquivalents(item, group)}
-                      className="mt-0.5 text-sm text-primary underline-offset-4 hover:underline"
+                      className="mt-0.5 text-sm text-muted underline decoration-border-strong underline-offset-4 transition-colors hover:text-foreground hover:decoration-foreground"
                     >
                       Elegir alimento equivalente
                     </button>
@@ -160,7 +160,7 @@ export function MealCard({
                     <button
                       type="button"
                       onClick={() => onOpenEquivalents(item, group)}
-                      className="mr-auto inline-flex h-8 items-center rounded-lg px-2.5 text-[13px] font-medium text-primary transition-colors hover:bg-primary-soft sm:mr-0"
+                      className="mr-auto inline-flex h-8 items-center rounded-lg px-2.5 text-[13px] font-medium text-muted transition-colors hover:bg-surface-muted hover:text-foreground sm:mr-0"
                     >
                       Cambiar
                     </button>

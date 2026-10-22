@@ -108,7 +108,7 @@ export function EquivalentsModal({
                     className={cn(
                       'flex flex-col items-start justify-between gap-3 py-4 sm:flex-row sm:items-center',
                       item.isExcluded && 'opacity-75',
-                      isSelected && '-mx-3 rounded-lg bg-primary-soft px-3'
+                      isSelected && '-mx-3 rounded-lg bg-surface-muted px-3'
                     )}
                   >
                     <div className="min-w-0 flex-1">
@@ -122,7 +122,7 @@ export function EquivalentsModal({
                         )}
                       </div>
 
-                      <p className="mt-1.5 text-sm font-bold text-primary sm:text-base">{item.formattedHousehold}</p>
+                      <p className="mt-1.5 text-sm font-semibold text-foreground sm:text-base">{item.formattedHousehold}</p>
 
                       <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
                         <span className="flex items-center gap-1">

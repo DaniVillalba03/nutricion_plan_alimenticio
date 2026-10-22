@@ -101,17 +101,17 @@ function LoginForm() {
   return (
     <div className="grid min-h-screen bg-background text-foreground lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
       {/* Panel de marca: solo tipografía y una cita, sin ilustraciones genéricas */}
-      <aside className="hidden flex-col justify-between bg-surface-muted p-12 lg:flex">
+      <aside className="hidden flex-col justify-between bg-[#0e0e10] p-12 text-[#f2f2f4] lg:flex">
         <p className="font-display text-2xl font-medium tracking-tight">
-          NutriPlan<span className="ml-1 align-super font-sans text-[11px] font-semibold tracking-wider text-primary">PY</span>
+          NutriPlan<span className="ml-1 align-super font-sans text-[11px] font-semibold tracking-wider text-[#3fb98c]">PY</span>
         </p>
         <blockquote className="max-w-md">
-          <p className="font-display text-[34px] font-medium italic leading-snug text-foreground">
+          <p className="font-display text-[34px] font-medium italic leading-snug text-[#f2f2f4]">
             Un hábito que fue aprendido puede ser reeducado.
           </p>
-          <footer className="mt-5 text-[15px] text-muted">Lic. Laura Molinas · Reg. Prof. 6020</footer>
+          <footer className="mt-5 text-[15px] text-[#a1a1ab]">Lic. Laura Molinas · Reg. Prof. 6020</footer>
         </blockquote>
-        <p className="text-[13px] text-muted">Planificación por intercambios con alimentos de Paraguay</p>
+        <p className="text-[13px] text-[#a1a1ab]">Planificación por intercambios con alimentos de Paraguay</p>
       </aside>
 
       <main className="flex items-center justify-center px-6 py-12">
@@ -181,7 +181,7 @@ function LoginForm() {
                 setErrorMsg(null);
                 setSuccessMsg(null);
               }}
-              className="font-medium text-primary underline-offset-4 hover:underline"
+              className="font-medium text-foreground underline underline-offset-4 decoration-border-strong hover:decoration-foreground"
             >
               {isSignUp ? 'Ingresa' : 'Crea una'}
             </button>

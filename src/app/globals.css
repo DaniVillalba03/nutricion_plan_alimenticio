@@ -60,14 +60,18 @@
   --macro-pro: #e0553b;
   --macro-lip: #3a7fc8;
 
-  --glow-cool: rgb(70 110 220 / 0.07);
-  --glow: rgb(31 191 74 / 0.10);
+  --glow-cool: rgb(70 110 220 / 0.15);
+  --glow: rgb(31 191 74 / 0.24);
 
   --ring: #1fbf4a;
   --overlay: rgb(6 20 10 / 0.5);
+
+  --card-shadow: 0 1px 2px rgb(16 24 20 / 0.05), 0 14px 30px -18px rgb(16 24 20 / 0.28);
 }
 
-.dark {
+/* `.force-dark` fija la paleta oscura en un panel concreto (ancla visual dentro de una página clara) */
+.dark,
+.force-dark {
   color-scheme: dark;
 
   --background: #0a0b0d;
@@ -110,11 +114,13 @@
   --macro-pro: #ef7a62;
   --macro-lip: #6aa5e8;
 
-  --glow-cool: rgb(90 130 240 / 0.08);
-  --glow: rgb(42 209 90 / 0.09);
+  --glow-cool: rgb(90 130 240 / 0.11);
+  --glow: rgb(42 209 90 / 0.13);
 
   --ring: #2ad15a;
   --overlay: rgb(0 0 0 / 0.7);
+
+  --card-shadow: none;
 }
 
 @theme inline {
@@ -179,6 +185,11 @@
   --color-zinc-850: oklch(24.3% 0.0415 262.8);
   --color-zinc-900: oklch(20.8% 0.042 265.755);
   --color-zinc-950: oklch(12.9% 0.042 264.695);
+}
+
+/* Sombra de tarjeta: suave en claro, ninguna en oscuro */
+@utility shadow-card {
+  box-shadow: var(--card-shadow);
 }
 
 /* Microetiqueta de datos: monoespaciada, mayúsculas pequeñas, tracking abierto */

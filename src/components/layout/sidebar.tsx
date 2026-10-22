@@ -63,11 +63,16 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col border-r border-border bg-surface transition-transform duration-200 ease-in-out lg:translate-x-0',
+          'fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col overflow-hidden border-r border-border bg-surface transition-transform duration-200 ease-in-out lg:translate-x-0',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex items-center justify-between px-7 pb-8 pt-8">
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-56"
+          style={{ backgroundImage: 'radial-gradient(90% 100% at 10% 0%, var(--glow), transparent 70%)' }}
+          aria-hidden="true"
+        />
+        <div className="relative flex items-center justify-between px-7 pb-8 pt-8">
           <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
             <Brand />
           </Link>
@@ -81,7 +86,7 @@ export function Sidebar() {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 px-4" aria-label="Navegación principal">
+        <nav className="relative flex-1 space-y-1 px-4" aria-label="Navegación principal">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href);

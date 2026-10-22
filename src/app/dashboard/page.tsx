@@ -62,21 +62,24 @@ function RecordCell({
   unit,
   hint,
   dot,
+  featured,
 }: {
   label: string;
   value: string;
   unit?: string;
   hint?: string;
   dot?: string;
+  /** Ancla visual: panel oscuro con la cifra en verde, también en modo claro. */
+  featured?: boolean;
 }) {
   return (
-    <div className="rounded-[14px] border border-border bg-surface px-4 py-3.5">
+    <div className={`rounded-[14px] border border-border bg-surface px-4 py-3.5 shadow-card ${featured ? 'force-dark' : ''}`}>
       <dt className="mono-label flex items-center gap-1.5 text-subtle">
         {dot && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} aria-hidden="true" />}
         {label}
       </dt>
       <dd className="mt-2 flex items-baseline gap-1.5 tabular-nums">
-        <span className="text-[30px] font-bold leading-none tracking-[-0.04em] text-foreground">{value}</span>
+        <span className={`text-[30px] font-bold leading-none tracking-[-0.04em] ${featured ? 'text-primary-text' : 'text-foreground'}`}>{value}</span>
         {unit && <span className="text-sm text-muted">{unit}</span>}
         {hint && <span className="mono-label ml-auto text-subtle">{hint}</span>}
       </dd>
@@ -419,7 +422,7 @@ function PlannerWorkspace({ activeClient }: { activeClient: Client }) {
 
         <dl className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-5">
           <RecordCell label="Edad" value={`${activeClient.age}`} unit="años" />
-          <RecordCell label="Meta" value={activeClient.targetCalories.toLocaleString('es-PY')} unit="kcal" />
+          <RecordCell featured label="Meta" value={activeClient.targetCalories.toLocaleString('es-PY')} unit="kcal" />
           <RecordCell
             label="Carbohidratos"
             dot="bg-macro-cho"

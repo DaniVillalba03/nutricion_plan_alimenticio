@@ -112,8 +112,13 @@ export function MacroSummaryBar({ totals, client, className }: MacroSummaryBarPr
   return (
     <section
       aria-label="Balance nutricional"
-      className={cn('overflow-hidden rounded-[14px] border border-border bg-surface', className)}
+      className={cn('force-dark isolate relative overflow-hidden rounded-[14px] border border-border bg-surface text-foreground', className)}
     >
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-64"
+        style={{ backgroundImage: 'radial-gradient(80% 90% at 50% 0%, var(--glow), transparent 72%)' }}
+        aria-hidden="true"
+      />
       <div className="border-b border-border bg-surface-muted/60 px-5 py-3.5">
         <h2 className="mono-label text-subtle">Balance · hoy</h2>
       </div>

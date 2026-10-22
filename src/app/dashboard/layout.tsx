@@ -20,7 +20,7 @@ async function DashboardShell({ children }: { children: React.ReactNode }) {
 
           {/* Contenido principal */}
           <div className="relative flex min-w-0 flex-1 flex-col lg:pl-[264px]">
-            <div className="bg-hero pointer-events-none absolute inset-x-0 top-0 h-[460px] lg:left-[264px]" aria-hidden="true" />
+            <div className="bg-hero pointer-events-none absolute inset-x-0 top-0 h-[560px] lg:left-[264px]" aria-hidden="true" />
             <main className="relative mx-auto w-full max-w-[1120px] flex-1 px-5 pb-24 pt-8 sm:px-8 lg:px-12 lg:pt-12">{children}</main>
           </div>
         </div>

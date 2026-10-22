@@ -94,30 +94,45 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
     : [];
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
+    <div className="relative flex min-h-screen flex-col bg-background text-foreground">
+      <div className="bg-hero pointer-events-none absolute inset-x-0 top-0 h-[460px]" aria-hidden="true" />
+      <header className="sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur">
         <div className="mx-auto flex max-w-lg items-center justify-between px-5 py-3">
           <Brand size="sm" />
           <ThemeToggle />
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-lg flex-1 px-5 pb-20 pt-8">
-        <p className="mono-label mb-3 flex items-center gap-2 text-subtle"><span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />Tu plan de hoy</p>
-        <h1 className="text-[44px]">Hola, <span className="text-primary-text">{firstName(client.fullName)}</span></h1>
-        <p className="mt-3 text-base text-muted">Elige entre los alimentos equivalentes cuando quieras variar.</p>
-
+      <main className="relative mx-auto w-full max-w-lg flex-1 px-5 pb-20 pt-6">
         <section
-          aria-label="Tu meta de hoy"
-          className="mt-7 overflow-hidden rounded-[14px] border border-border bg-surface"
+          aria-label="Tu plan de hoy"
+          className="force-dark relative isolate overflow-hidden rounded-[22px] border border-border bg-background p-6 text-foreground"
         >
-          <dl className="grid grid-cols-4 divide-x divide-border">
+          <div
+            className="pointer-events-none absolute inset-0 -z-10"
+            style={{
+              backgroundImage:
+                'radial-gradient(70% 80% at 90% 0%, var(--glow), transparent 70%), radial-gradient(60% 60% at 0% 100%, var(--glow-cool), transparent 70%)',
+            }}
+            aria-hidden="true"
+          />
+          <p className="mono-label flex items-center gap-2 text-subtle">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+            Tu plan de hoy
+          </p>
+          <h1 className="mt-3 text-[44px]">
+            Hola, <span className="text-primary-text">{firstName(client.fullName)}</span>
+          </h1>
+          <p className="mt-3 text-base text-muted">Elige entre los alimentos equivalentes cuando quieras variar.</p>
+
+          <dl className="mt-6 grid grid-cols-4 gap-2">
             <GoalCell label="Calorías" value={client.targetCalories.toLocaleString('es-PY')} unit="kcal" />
             <GoalCell label="Carbo." value={`${client.targetMacros.carbohydrates}`} unit="g" dot="bg-macro-cho" />
             <GoalCell label="Prote." value={`${client.targetMacros.proteins}`} unit="g" dot="bg-macro-pro" />
             <GoalCell label="Lípidos" value={`${client.targetMacros.lipids}`} unit="g" dot="bg-macro-lip" />
           </dl>
-          <div className="border-t border-border bg-surface-muted/50 px-4 py-3">
+
+          <div className="mt-5">
             <div className="flex items-baseline justify-between text-sm">
               <span className="font-medium text-foreground">Comidas de hoy</span>
               <span className="tabular-nums text-muted">
@@ -125,7 +140,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
               </span>
             </div>
             <div
-              className="mt-2 h-2 w-full overflow-hidden rounded-full bg-border"
+              className="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-muted"
               role="progressbar"
               aria-label="Comidas completadas hoy"
               aria-valuenow={adherencePercent}
@@ -143,14 +158,14 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
               key={meal.id}
               aria-label={meal.name}
               className={cn(
-                'overflow-hidden rounded-[14px] border bg-surface transition-colors',
+                'overflow-hidden rounded-[14px] border bg-surface shadow-card transition-colors',
                 meal.isCompleted ? 'border-primary/50' : 'border-border'
               )}
             >
-              <div className="flex items-center justify-between gap-3 border-b border-border bg-surface-muted/50 px-4 py-3">
+              <div className="flex items-center justify-between gap-3 border-b border-border bg-primary-soft px-4 py-3">
                 <div className="flex items-center gap-3">
                   <span
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-muted"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
                     aria-hidden="true"
                   >
                     <Utensils className="h-4 w-4" strokeWidth={1.6} />
@@ -208,11 +223,11 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
                           {group.shortName} · {formatFriendlyFraction(item.exchangeCount)} int
                         </p>
                         <p className="mt-1 text-lg font-semibold leading-snug tracking-[-0.02em]">{selectedFood?.name || 'Alimento a elección'}</p>
-                        <p className="mt-0.5 text-[15px] text-foreground">
-                          <span className="font-medium">
+                        <p className="mt-2 flex items-center gap-2">
+                          <span className="rounded-full bg-primary-soft px-3 py-1 text-[15px] font-semibold text-primary-soft-foreground">
                             {friendlyHouseholdQty} {selectedFood?.householdUnit}
                           </span>
-                          <span className="ml-1.5 tabular-nums text-muted">({calculatedGrams} g)</span>
+                          <span className="text-sm tabular-nums text-muted">{calculatedGrams} g</span>
                         </p>
                       </div>
 
@@ -302,7 +317,7 @@ function PatientPortalContent({ client, plan }: { client: Client; plan: MealPlan
 /** Celda de la tarjeta de metas del día. */
 function GoalCell({ label, value, unit, dot }: { label: string; value: string; unit: string; dot?: string }) {
   return (
-    <div className="px-2 py-3.5 text-center">
+    <div className="rounded-[12px] border border-border bg-surface/70 px-2 py-3.5 text-center">
       <dt className="mono-label flex items-center justify-center gap-1.5 text-subtle">
         {dot && <span className={`h-1.5 w-1.5 rounded-full ${dot}`} aria-hidden="true" />}
         {label}
